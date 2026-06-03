@@ -45,7 +45,7 @@ def query_gemini(prompt: str, json_mode: bool = False, temperature: float = 0.2)
     if not settings.GEMINI_API_KEY or not genai:
         raise ValueError("Gemini is not configured: missing GEMINI_API_KEY or google-generativeai package.")
         
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash")
     
     generation_config = {"temperature": temperature}
     if json_mode:

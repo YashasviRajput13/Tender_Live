@@ -163,14 +163,49 @@ class GeMScraper(BaseScraper):
             source_id = (doc.get("b_id") or [None])[0]
             source_url = f"https://bidplus.gem.gov.in/public-bid-other-details/{source_id}" if source_id else self.base_url
 
+            # Parse budget from estimated_bid_value
+            budget = None
+            estimated_val = doc.get("estimated_bid_value")
+            if estimated_val:
+                try:
+                    raw = estimated_val[0] if isinstance(estimated_val, list) else estimated_val
+                    budget = Decimal(str(raw)) if raw else None
+                except Exception:
+                    pass
+
+            # Parse real location from state/city fields
+            state = (doc.get("ba_official_details_stateName") or [""])[0]
+            city = (doc.get("ba_official_details_cityName") or [""])[0]
+            if city and state:
+                location = f"{city}, {state}"
+            elif state:
+                location = state
+            elif city:
+                location = city
+            else:
+                location = "India"
+
+            # Build meaningful eligibility criteria from category + MSME flag
+            categories = doc.get("b_category_name") or []
+            cats_text = ", ".join(str(c) for c in (categories[:3] if isinstance(categories, list) else [str(categories)]) if c)
+            msme_flag = (doc.get("b_msme") or [False])[0]
+            eligibility_text = (
+                f"GeM Bid {tender_id} – Item Category: {cats_text or title_text}. "
+                f"Department: {department or 'Government of India'}. Location: {location}. "
+                f"MSME preference: {'Yes – MSME vendors receive price preference and EMD exemption.' if msme_flag else 'Standard – No special MSME preference specified.'} "
+                f"Bidder must be registered on GeM portal, meet quantity/delivery requirements, "
+                f"and comply with GeM General Terms & Conditions (GTC). "
+                f"Financial, technical, and past supply experience eligibility as per bid document."
+            )
+
             tenders.append({
                 "tender_id": tender_id,
                 "title": f"GeM Bid: {title_text}",
                 "department": department or "GeM Government Bid",
-                "location": "India",
-                "budget": None,
+                "location": location,
+                "budget": budget,
                 "deadline": deadline,
-                "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
+                "eligibility_criteria": eligibility_text,
                 "source_url": source_url,
                 "source_name": "GeM",
                 "raw_html": json.dumps(doc)

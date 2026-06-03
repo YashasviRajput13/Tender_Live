@@ -78,6 +78,23 @@ class CPPPScraper(BaseScraper):
 
         return href
 
+    INDIAN_STATES = [
+        "Delhi", "New Delhi", "Mumbai", "Maharashtra", "Karnataka", "Tamil Nadu",
+        "Telangana", "Gujarat", "Rajasthan", "Uttar Pradesh", "Madhya Pradesh",
+        "Punjab", "Haryana", "West Bengal", "Andhra Pradesh", "Kerala", "Odisha",
+        "Bihar", "Assam", "Jharkhand", "Chhattisgarh", "Uttarakhand",
+        "Himachal Pradesh", "Goa", "Jammu", "Kashmir", "Manipur", "Tripura",
+        "Meghalaya", "Nagaland", "Sikkim", "Arunachal Pradesh", "Mizoram"
+    ]
+
+    def infer_location(self, organization: str, title: str) -> str:
+        """Infer state/city location from organization or title text."""
+        combined = f"{organization} {title}".lower()
+        for state in self.INDIAN_STATES:
+            if state.lower() in combined:
+                return state
+        return "India"
+
     def scrape(self, limit: int = 15) -> List[Dict[str, Any]]:
         """
         Scrape and parse active tenders from CPPP.
@@ -152,14 +169,24 @@ class CPPPScraper(BaseScraper):
             if pdf_link is None:
                 logger.warning(f"CPPP scraper failed to extract a valid URL from row: {title_ref}")
 
+            location = self.infer_location(organization, title)
+
+            eligibility_text = (
+                f"CPPP Tender {tender_id} issued by {organization}. "
+                f"Location: {location}. Closing Date: {closing_date}. "
+                f"Bidders must be registered entities with valid GST, PAN, and relevant experience. "
+                f"Financial and technical eligibility as per tender document available at source URL. "
+                f"Submission of EMD, performance security, and compliance with GFR 2017 mandatory."
+            )
+
             tenders.append({
                 "tender_id": tender_id,
                 "title": f"CPPP Tender: {title}",
                 "department": organization,
-                "location": "New Delhi, India",
+                "location": location,
                 "budget": None,
                 "deadline": deadline,
-                "eligibility_criteria": f"CPPP Eligibility requirements for Tender ID: {tender_id}. Involves standard qualification criteria outlined by {organization}.",
+                "eligibility_criteria": eligibility_text,
                 "source_url": pdf_link or self.base_url,
                 "source_name": "CPPP",
                 "raw_html": str(row)

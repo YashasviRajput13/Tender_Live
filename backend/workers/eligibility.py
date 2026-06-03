@@ -33,19 +33,25 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
     # Fetch active company profile
     if company_db_id:
         company = db.query(models.Company).filter(models.Company.id == company_db_id).first()
+        if not company:
+            logger.error(f"Company with ID {company_db_id} not found in database.")
+            db.close()
+            return False
+        logger.info(f"Using company profile: '{company.name}' (ID: {company.id}) for eligibility matching.")
     else:
-        # Default to first seeded company profile
+        # Fallback: use first available company (should not happen in normal flow)
         company = db.query(models.Company).first()
-        
-    if not company:
-        logger.error("No company profile found in database. Cannot run alignment.")
-        log_messages = [{"timestamp": str(datetime.utcnow()), "level": "ERROR", "message": "No active Company Profile found. Please configure company details."}]
-        task.status = "failed"
-        task.progress = 100
-        task.log_messages = log_messages
-        db.commit()
-        db.close()
-        return False
+        if not company:
+            logger.error("No company profile found in database. Cannot run alignment.")
+            log_messages = [{"timestamp": str(datetime.utcnow()), "level": "ERROR", "message": "No active Company Profile found. Please configure company details first."}]
+            task.status = "failed"
+            task.progress = 100
+            task.log_messages = log_messages
+            db.commit()
+            db.close()
+            return False
+        logger.warning(f"No company_db_id provided — falling back to first company: '{company.name}' (ID: {company.id}).")
+
 
     task.status = "running"
     task.current_agent = "eligibility_agent"

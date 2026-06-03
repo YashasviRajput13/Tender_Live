@@ -113,44 +113,92 @@ def seed_initial_data(db):
         )
         db.add(user)
         db.commit()
-
-        company = models.Company(
-            user_id=user.id,
-            name="Yash Tech Solutions Ltd",
-            industry="IT Software Services & Infrastructure",
-            turnover=350.00,
-            registration_numbers="REG987654321",
-            certifications="ISO 9001:2015, CMMI Level 3",
-            gst_details="27AAAAA1111A1Z1",
-            msme_status=True,
-            past_projects=[
-                {
-                    "title": "State Smart Cities Networking Setup",
-                    "client": "Ministry of Urban Development",
-                    "value": 18000000,
-                    "description": "Deployment of high-performance fiber optic and routing layers across municipal nodes.",
-                    "year": 2024
-                },
-                {
-                    "title": "Cloud Infrastructure Migration",
-                    "client": "National Electronics Corp",
-                    "value": 6500000,
-                    "description": "Migration of legacy server workloads to scalable hybrid cloud spaces.",
-                    "year": 2025
-                }
-            ],
-            team_strength=75,
-            geographic_coverage=["New Delhi", "Maharashtra", "Karnataka", "Tamil Nadu"],
-            required_categories=["IT Infrastructure", "Software Development", "Networking", "Cloud Services"]
-        )
-        db.add(company)
-        db.commit()
-        logger.info("Company user seeded: user@tenderai.com / user_secure_pwd_123")
     elif not auth.verify_password("user_secure_pwd_123", user.hashed_password):
         logger.warning("Existing company user account found with a non-default password. Resetting to local default for development.")
         user.hashed_password = auth.get_password_hash("user_secure_pwd_123")
         db.commit()
         logger.info("Company user password reset to user_secure_pwd_123")
+
+    # Always upsert the company profile so changes here reflect on restart
+    company = db.query(models.Company).filter(models.Company.user_id == user.id).first()
+    rich_profile = dict(
+        name="NexaTech Infrasoft Pvt. Ltd.",
+        industry="IT Infrastructure, Software Development & Cybersecurity",
+        turnover=1250.00,  # INR 12.5 Crore
+        registration_numbers="CIN: U72200DL2015PTC287645 | DPIIT Startup India: DIPP123456",
+        certifications="ISO 9001:2015, ISO 27001:2022, CMMI Level 3, NIC Empanelled Vendor (Category A), STQC Certified, GeM Verified Seller, MeitY Empanelled",
+        gst_details="07AABCN1234D1Z5",
+        msme_status=True,
+        past_projects=[
+            {
+                "title": "Integrated E-Governance Platform for Municipal Services",
+                "client": "Ministry of Housing & Urban Affairs (MoHUA), Government of India",
+                "value": 45000000,
+                "description": "End-to-end development and deployment of a unified citizen services portal covering 12 city municipalities. Included ReactJS frontend, FastAPI microservices backend, PostgreSQL data layer, and real-time analytics dashboard. Integrated with DigiLocker, Aadhaar e-KYC, and UPI Payment Gateway.",
+                "year": 2024
+            },
+            {
+                "title": "Secure Data Center Setup & Network Infrastructure Modernisation",
+                "client": "National Informatics Centre (NIC), Delhi",
+                "value": 32000000,
+                "description": "Design and deployment of a Tier-2 equivalent data center with redundant fiber backbone, Dell PowerEdge server rack setup, NetApp storage arrays, Palo Alto next-gen firewall, and 24x7 NOC monitoring. Delivered 3-year SLA-backed AMC.",
+                "year": 2024
+            },
+            {
+                "title": "Cloud Migration & DevSecOps Implementation",
+                "client": "SIDBI (Small Industries Development Bank of India)",
+                "value": 18500000,
+                "description": "Migration of 14 legacy monolithic applications to containerized microservices on AWS GovCloud. Implemented Jenkins CI/CD pipelines, Kubernetes orchestration, Terraform IaC, and Splunk-based SIEM compliance monitoring. Zero-downtime cutover achieved.",
+                "year": 2023
+            },
+            {
+                "title": "Cybersecurity Audit, VAPT & SOC Setup",
+                "client": "State Bank of India – IT Security Division",
+                "value": 8700000,
+                "description": "Comprehensive Vulnerability Assessment & Penetration Testing (VAPT) across 240 endpoints, 18 web applications, and 34 REST APIs as per CERT-In empanelled methodology. Established a 24x7 Security Operations Centre (SOC) with SIEM integration and incident response runbooks.",
+                "year": 2025
+            },
+            {
+                "title": "Hospital Management System (HMS) Implementation",
+                "client": "AIIMS Bhopal, Ministry of Health & Family Welfare",
+                "value": 22000000,
+                "description": "Full-stack HMS covering patient records (EMR), OPD/IPD billing, pharmacy inventory, HR & payroll, radiology integration (DICOM), and mobile app for patients. Integrated with National Health Stack, Ayushman Bharat PMJAY APIs, and ABDM health ID.",
+                "year": 2023
+            },
+            {
+                "title": "AI-Powered Land Records Digitization Platform",
+                "client": "Revenue Department, Government of Maharashtra",
+                "value": 15000000,
+                "description": "Deployed OCR + NLP pipeline for digitizing 2.4 million land record documents (7/12 extracts). Built quality assurance module, a searchable web portal, and integrated with DILRMP national land records system. Achieved 97.6% OCR accuracy on handwritten Marathi text.",
+                "year": 2025
+            }
+        ],
+        team_strength=120,
+        geographic_coverage=[
+            "New Delhi", "Maharashtra", "Karnataka", "Telangana", "Tamil Nadu",
+            "Gujarat", "Uttar Pradesh", "Madhya Pradesh", "Rajasthan", "West Bengal",
+            "Punjab", "Haryana", "Kerala", "Odisha", "Bihar"
+        ],
+        required_categories=[
+            "IT Infrastructure", "Software Development", "Cloud Computing & Migration",
+            "Cybersecurity & VAPT", "Network Setup & Maintenance", "Data Center Services",
+            "ERP Implementation", "Digital Governance Solutions", "AI/ML & Data Analytics",
+            "Database Administration", "Web Application Development", "Mobile App Development",
+            "Managed IT Services (AMC)", "System Integration", "GIS & Mapping Solutions"
+        ]
+    )
+    if not company:
+        logger.info("Seeding NexaTech Infrasoft company profile for company_user...")
+        company = models.Company(user_id=user.id, **rich_profile)
+        db.add(company)
+        db.commit()
+        logger.info("Company user seeded: user@tenderai.com / user_secure_pwd_123")
+    else:
+        logger.info("Updating existing company profile to NexaTech Infrasoft rich IT profile...")
+        for field, value in rich_profile.items():
+            setattr(company, field, value)
+        db.commit()
+        logger.info("Company profile updated successfully.")
 
     sources = [
         {"name": "GeM", "url": "https://bidplus.gem.gov.in/all-bids"},
