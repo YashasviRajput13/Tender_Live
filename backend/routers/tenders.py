@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, desc
 from typing import List, Optional
 from decimal import Decimal
 import models, schemas, auth
@@ -20,8 +21,8 @@ def list_tenders(
     """
     Fetch crawled tenders using dynamic filter parameters.
     """
-    query = db.query(models.Tender)
-    
+    query = db.query(models.Tender).options(joinedload(models.Tender.eligibility_reports))
+
     if source:
         query = query.filter(models.Tender.source_name.ilike(source))
     if status:
@@ -36,8 +37,15 @@ def list_tenders(
             (models.Tender.tender_id.ilike(f"%{search}%")) |
             (models.Tender.department.ilike(f"%{search}%"))
         )
-        
-    tenders = query.order_by(models.Tender.created_at.desc()).all()
+
+    tenders = query.all()
+
+    # Sort: analyzed tenders by opportunity_score desc, then unanalyzed by created_at desc
+    def sort_key(t):
+        best_score = max((r.opportunity_score for r in t.eligibility_reports), default=-1)
+        return (best_score, t.created_at.timestamp())
+
+    tenders.sort(key=sort_key, reverse=True)
     return tenders
 
 @router.get("/{tender_id}", response_model=dict)

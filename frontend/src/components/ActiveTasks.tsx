@@ -30,7 +30,7 @@ export default function ActiveTasks({ tasks, onTriggerDiscovery, isTriggering, o
     }
   };
 
-  const getAgentLabel = (agent?: string) => {
+  const getAgentLabel = (agent?: string, status?: string) => {
     switch (agent) {
       case 'scraper':
         return 'Tender Discovery Agent';
@@ -42,9 +42,9 @@ export default function ActiveTasks({ tasks, onTriggerDiscovery, isTriggering, o
         return 'AI Summarization Agent';
       case 'scoring_agent':
         return 'Opportunity Scoring Agent';
-      case 'completed':
-        return 'Pipeline Completed';
       default:
+        if (status === 'completed') return 'Pipeline Completed';
+        if (status === 'failed') return 'Pipeline Failed';
         return 'Agent Waiting...';
     }
   };
@@ -112,7 +112,7 @@ export default function ActiveTasks({ tasks, onTriggerDiscovery, isTriggering, o
                     {t.task_type.toUpperCase()}
                   </span>
                   <h4 className="text-xs font-bold text-white mt-1">
-                    {getAgentLabel(t.current_agent)}
+                    {getAgentLabel(t.current_agent, t.status)}
                   </h4>
                 </div>
                 <div className="flex items-center space-x-2 text-xs font-semibold text-amber-400">

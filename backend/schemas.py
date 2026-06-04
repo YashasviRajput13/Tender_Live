@@ -98,9 +98,23 @@ class TenderOut(BaseModel):
     created_at: datetime
     status: str
     documents: List[TenderDocumentOut] = []
+    # Computed from best eligibility report (if analyzed)
+    opportunity_score: Optional[int] = None
+    eligibility: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        instance = super().model_validate(obj, *args, **kwargs)
+        # Populate opportunity_score and eligibility from best eligibility report
+        if hasattr(obj, 'eligibility_reports') and obj.eligibility_reports:
+            best = max(obj.eligibility_reports, key=lambda r: r.opportunity_score, default=None)
+            if best:
+                instance.opportunity_score = best.opportunity_score
+                instance.eligibility = best.eligibility
+        return instance
 
 
 # --- ELIGIBILITY REPORT ---

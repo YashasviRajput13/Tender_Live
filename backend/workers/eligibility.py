@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from datetime import datetime
 from celery import shared_task
 from database import SessionLocal
@@ -7,9 +8,21 @@ from services.eligibility_agent import EligibilityAgent
 from services.summary_agent import SummaryAgent
 from services.scoring_agent import ScoringAgent
 from sse import trigger_task_update, sse_manager
-import asyncio
 
 logger = logging.getLogger(__name__)
+
+def run_async(coro):
+    """Safely run a coroutine from a synchronous Celery worker context."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
 
 @shared_task(name="workers.eligibility.run_eligibility_matching")
 def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int = None):
@@ -60,7 +73,7 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
     task.log_messages = log_messages
     db.commit()
     
-    asyncio.run(trigger_task_update(task_id, 10, "running", "eligibility_agent", "Starting AI eligibility analysis...", log_messages))
+    run_async(trigger_task_update(task_id, 10, "running", "eligibility_agent", "Starting AI eligibility analysis...", log_messages))
 
     try:
         # Prepare tender dict for AI consumption
@@ -91,7 +104,7 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": "Invoking Eligibility Agent. Evaluating criteria..."})
         task.log_messages = log_messages
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 30, "running", "eligibility_agent", "Eligibility Agent executing...", log_messages))
+        run_async(trigger_task_update(task_id, 30, "running", "eligibility_agent", "Eligibility Agent executing...", log_messages))
         
         eligibility_agent = EligibilityAgent()
         eligibility_res = eligibility_agent.analyze(company_data, tender_data)
@@ -101,13 +114,13 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         task.log_messages = log_messages
         task.progress = 40
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 40, "running", "summary_agent", f"Eligibility Agent completed: {eligibility_res.get('eligibility')}", log_messages))
+        run_async(trigger_task_update(task_id, 40, "running", "summary_agent", f"Eligibility Agent completed: {eligibility_res.get('eligibility')}", log_messages))
 
         # 2. RUN SUMMARIZATION AGENT
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": "Invoking Summarization Agent. Distilling risks and milestones..."})
         task.log_messages = log_messages
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 60, "running", "summary_agent", "Summarization Agent executing...", log_messages))
+        run_async(trigger_task_update(task_id, 60, "running", "summary_agent", "Summarization Agent executing...", log_messages))
         
         summary_agent = SummaryAgent()
         summary_res = summary_agent.summarize(tender_data)
@@ -117,13 +130,13 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         task.log_messages = log_messages
         task.progress = 70
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 70, "running", "scoring_agent", "Summarization complete. Scoring tender...", log_messages))
+        run_async(trigger_task_update(task_id, 70, "running", "scoring_agent", "Summarization complete. Scoring tender...", log_messages))
 
         # 3. RUN OPPORTUNITY SCORING AGENT
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": "Invoking Opportunity Scoring Agent. Calculating suitability scale..."})
         task.log_messages = log_messages
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 80, "running", "scoring_agent", "Opportunity Scoring Agent executing...", log_messages))
+        run_async(trigger_task_update(task_id, 80, "running", "scoring_agent", "Opportunity Scoring Agent executing...", log_messages))
         
         scoring_agent = ScoringAgent()
         score_res = scoring_agent.calculate(company_data, tender_data, eligibility_res)
@@ -132,7 +145,7 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         task.log_messages = log_messages
         task.progress = 90
         db.commit()
-        asyncio.run(trigger_task_update(task_id, 90, "running", "scoring_agent", f"Scoring finished. Score: {score_res}/100", log_messages))
+        run_async(trigger_task_update(task_id, 90, "running", "scoring_agent", f"Scoring finished. Score: {score_res}/100", log_messages))
 
         # 4. SAVE COMPREHENSIVE ELIGIBILITY REPORT
         # Clear old reports for this tender to prevent duplication
@@ -174,14 +187,14 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": "Multi-agent report compiled and persisted in PostgreSQL."})
         task.status = "completed"
         task.progress = 100
-        task.current_agent = "completed"
+        task.current_agent = "scoring_agent"
         task.log_messages = log_messages
         db.commit()
         
-        asyncio.run(trigger_task_update(task_id, 100, "completed", "completed", "Multi-agent analysis completed successfully.", log_messages))
+        run_async(trigger_task_update(task_id, 100, "completed", "scoring_agent", "Multi-agent analysis completed successfully.", log_messages))
         
         # 5. BROADCAST LIVE SSE DASHBOARD EVENTS
-        asyncio.run(sse_manager.publish("dashboard_events", "eligibility_completed", {
+        run_async(sse_manager.publish("dashboard_events", "eligibility_completed", {
             "id": tender.id,
             "tender_id": tender.tender_id,
             "title": tender.title,
@@ -192,7 +205,7 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
             "timeline": report.timeline
         }))
         
-        asyncio.run(sse_manager.publish("dashboard_events", "risk_analysis_completed", {
+        run_async(sse_manager.publish("dashboard_events", "risk_analysis_completed", {
             "id": tender.id,
             "tender_id": tender.tender_id,
             "risks": report.risk_analysis.get("risks", [])
@@ -212,7 +225,7 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
             db.flush()
             
             # Publish notification update to Redis general channel
-            asyncio.run(sse_manager.publish("dashboard_events", "notification_added", {
+            run_async(sse_manager.publish("dashboard_events", "notification_added", {
                 "id": notif.id,
                 "user_id": u.id,
                 "message": notif.message,
@@ -228,10 +241,10 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "ERROR", "message": f"Error running agent pipeline: {str(e)}"})
         task.status = "failed"
         task.progress = 100
-        task.current_agent = "completed"
+        task.current_agent = "scoring_agent"
         task.log_messages = log_messages
         db.commit()
         
-        asyncio.run(trigger_task_update(task_id, 100, "failed", "completed", f"Agent pipeline failed: {str(e)}", log_messages))
+        run_async(trigger_task_update(task_id, 100, "failed", "scoring_agent", f"Agent pipeline failed: {str(e)}", log_messages))
         db.close()
         return False

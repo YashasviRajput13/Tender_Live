@@ -55,6 +55,8 @@ export interface Tender {
   created_at: string;
   status: string;
   documents: TenderDocument[];
+  opportunity_score?: number;   // 0-100 from AI scoring agent
+  eligibility?: string;         // eligible | partially_eligible | not_eligible
 }
 
 export interface FinancialMatch {

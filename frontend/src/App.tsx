@@ -284,18 +284,19 @@ export default function App() {
           if (existing) {
             return prev.map(t => t.id === data.task_id ? {
               ...t,
-              progress: data.progress,
-              status: data.status,
-              current_agent: data.agent,
-              log_messages: [...t.log_messages, data.log],
+              progress: data.progress ?? t.progress,
+              status: data.status ?? t.status,
+              current_agent: data.agent ?? t.current_agent,
+              log_messages: [...(t.log_messages || []), data.log],
               updated_at: new Date().toISOString()
             } : t);
           }
+          // Task not in local state yet — add it
           return [...prev, {
             id: data.task_id,
             task_type: data.agent === 'scraper' ? 'discovery' : 'analysis',
-            status: data.status,
-            progress: data.progress,
+            status: data.status ?? 'running',
+            progress: data.progress ?? 0,
             log_messages: [data.log],
             current_agent: data.agent,
             created_at: new Date().toISOString(),

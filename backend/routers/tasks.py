@@ -1,7 +1,7 @@
 import threading
 import uuid
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -98,10 +98,22 @@ def list_tasks(
     return tasks
 
 @router.get("/stream/dashboard")
-async def stream_dashboard_events():
+async def stream_dashboard_events(
+    access_token: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
     """
-    Establish a Server-Sent Events stream for global system events (tender_discovered, log logs).
+    Establish a Server-Sent Events stream for global system events (tender_discovered, activity_log).
+    Authenticated via access_token query parameter (used by EventSource which cannot set headers).
     """
+    # Validate access_token from query param (EventSource API cannot set Authorization headers)
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Missing access token for SSE stream.")
+    try:
+        auth.get_current_user_from_token(access_token, db)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired access token.")
+
     return StreamingResponse(
         sse_manager.subscribe("dashboard_events"),
         media_type="text/event-stream",
