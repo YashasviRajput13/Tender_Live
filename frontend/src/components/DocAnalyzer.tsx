@@ -3,11 +3,8 @@ import {
   Upload, 
   FileText, 
   RotateCw, 
-  CheckCircle2, 
-  XCircle,
   Sparkles,
-  Terminal,
-  Award
+  Terminal
 } from 'lucide-react';
 import axios from 'axios';
 import { AgentTask } from '../types';
@@ -60,25 +57,25 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
   };
 
   return (
-    <div className="p-8 max-w-3xl space-y-8 font-['Plus_Jakarta_Sans'] font-medium select-text">
+    <div className="p-8 max-w-3xl space-y-8 font-sans select-none bg-white">
       
       <div className="space-y-2">
-        <h2 className="text-base font-extrabold text-white font-['Outfit']">Document Intelligence Agent</h2>
-        <p className="text-xs text-slate-400">
-          Upload active government tender PDFs to run zero-shot layout reading, structural extraction, and custom eligibility parsing.
+        <h2 className="text-sm font-display font-bold text-slate-900 tracking-wide">Document Intelligence</h2>
+        <p className="text-xs text-slate-500">
+          Upload active government tender PDFs to execute zero-shot layout structure mapping, text stream extraction, and alignment checks.
         </p>
       </div>
 
       {/* UPLOAD FORM PANEL */}
       {!activeUploadTask && (
-        <form onSubmit={handleUploadSubmit} className="glass-panel rounded-2xl border border-slate-800 p-8 text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-brand-400 shadow-md">
-            <Upload className="w-6 h-6 animate-pulse" />
+        <form onSubmit={handleUploadSubmit} className="glass-panel rounded-2xl border border-slate-200 p-10 text-center space-y-6 shadow-premium bg-white/70">
+          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto text-primary-500 shadow-inner">
+            <Upload className="w-5 h-5 animate-pulse" />
           </div>
 
-          <div className="space-y-1.5 max-w-sm mx-auto">
-            <h3 className="text-xs font-bold text-slate-200">Drag and drop tender PDF here</h3>
-            <p className="text-[11px] text-slate-500">Supports standard e-Procurement layouts (max 40k character text streams)</p>
+          <div className="space-y-1.5 max-w-xs mx-auto">
+            <h3 className="text-xs font-bold text-slate-900">Drag and drop tender PDF document</h3>
+            <p className="text-[10px] text-slate-500 font-mono leading-relaxed">// Supports standard bid layouts (max 40k characters)</p>
           </div>
 
           <div className="relative max-w-xs mx-auto">
@@ -92,31 +89,31 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
             />
             <button
               type="button"
-              className="w-full py-2.5 px-4 rounded-xl border border-slate-700/80 hover:bg-slate-800 text-xs font-semibold text-slate-200"
+              className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition shadow-sm"
             >
-              {file ? file.name : 'Select PDF File'}
+              {file ? file.name : 'Select PDF Document'}
             </button>
           </div>
 
           {errorMsg && (
-            <span className="block text-xs text-rose-500 font-bold">{errorMsg}</span>
+            <span className="block text-xs text-danger font-bold">{errorMsg}</span>
           )}
 
           {file && (
             <button
               type="submit"
               disabled={uploading}
-              className="py-2.5 px-8 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs shadow-md transition-all inline-flex items-center space-x-2"
+              className="py-2.5 px-8 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-premium-glow transition-all inline-flex items-center space-x-2"
             >
               {uploading ? (
                 <>
                   <RotateCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Uploading bid document...</span>
+                  <span>Uploading document...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Start AI Layout Parsing</span>
+                  <span>Start AI Parser</span>
                 </>
               )}
             </button>
@@ -126,49 +123,49 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
 
       {/* ACTIVE ANALYZER STREAM PANEL */}
       {activeUploadTask && (
-        <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-6 shadow-premium bg-white/70">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-brand-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <FileText className="w-4 h-4 text-primary-500" />
+              <h3 className="text-xs font-mono font-extrabold text-slate-900 uppercase tracking-widest leading-none">
                 Document Parsing Queue
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-slate-500">
+            <span className="text-[9px] font-mono text-slate-500">
               ID: {activeUploadTask.id.slice(0, 8)}...
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-white">
+              <h4 className="text-xs font-bold text-slate-900 leading-snug">
                 {activeUploadTask.status === 'running' ? 'Extracting text and qualifications...' : 'Document parsed. Preparing matching...'}
               </h4>
-              <p className="text-[10px] text-slate-400">Chaining into the Eligibility evaluator.</p>
+              <p className="text-[10px] text-slate-500 font-medium">Chaining into the Eligibility evaluator.</p>
             </div>
-            <span className="text-sm font-extrabold text-brand-400">{activeUploadTask.progress}%</span>
+            <span className="text-sm font-bold text-primary-600 font-mono">{activeUploadTask.progress}%</span>
           </div>
 
           {/* Progress loader */}
-          <div className="w-full bg-slate-700/80 rounded-full h-2 overflow-hidden shadow-inner">
+          <div className="w-full bg-slate-105 rounded-full h-1.5 overflow-hidden shadow-inner">
             <div 
-              className="bg-brand-400 h-2 rounded-full transition-all duration-300"
+              className="bg-primary-500 h-1.5 rounded-full transition-all duration-300 shadow-premium-glow"
               style={{ width: `${activeUploadTask.progress}%` }}
             ></div>
           </div>
 
           {/* Activity terminal log blocks */}
-          <div className="space-y-2">
-            <span className="flex items-center space-x-1.5 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
-              <Terminal className="w-3 h-3" />
+          <div className="space-y-2.5">
+            <span className="flex items-center space-x-1.5 text-[9px] font-mono text-slate-500 uppercase tracking-widest select-none">
+              <Terminal className="w-3 h-3 text-slate-400" />
               <span>Layout Parser logs stream</span>
             </span>
             
-            <div className="bg-slate-950/90 border border-slate-850 rounded-xl p-4 font-mono text-[9px] text-emerald-400/90 leading-relaxed max-h-48 overflow-y-auto shadow-inner">
+            <div className="bg-slate-900 border border-slate-805 rounded-xl p-4 font-mono text-[9px] text-secondary-400 leading-relaxed max-h-48 overflow-y-auto select-text shadow-inner">
               {activeUploadTask.log_messages?.map((log, idx) => (
                 <div key={idx} className="flex space-x-2">
-                  <span className="text-slate-650">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                  <span className={log.level === 'ERROR' ? 'text-rose-400' : 'text-slate-350'}>
+                  <span className="text-slate-500">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                  <span className={log.level === 'ERROR' ? 'text-danger animate-pulse' : 'text-slate-250'}>
                     {log.message}
                   </span>
                 </div>

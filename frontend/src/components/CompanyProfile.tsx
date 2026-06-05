@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Building, 
-  DollarSign, 
-  FileText, 
   MapPin, 
   Tag, 
   Plus, 
@@ -104,106 +102,106 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 space-y-8 max-w-4xl select-text">
+    <form onSubmit={handleSubmit} className="p-8 space-y-8 max-w-4xl select-text bg-white">
       
       {/* SECTION 1: CORPORATE META */}
-      <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-6 shadow-md">
-        <div className="flex items-center space-x-2 border-b border-slate-800 pb-3 mb-2">
-          <Building className="w-5 h-5 text-brand-400" />
-          <h2 className="text-sm font-extrabold text-white uppercase tracking-wider font-['Outfit']">
+      <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-6 shadow-premium select-none">
+        <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 mb-2">
+          <Building className="w-5 h-5 text-primary-500" />
+          <h2 className="text-sm font-display font-bold text-slate-900 tracking-wide">
             General Business Parameters
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Enterprise Name</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enterprise Name</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Industry Sector</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Industry Sector</label>
             <input
               type="text"
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Annual Turnover (INR Lakhs)</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Annual Turnover (INR Lakhs)</label>
             <input
               type="number"
               value={turnover}
               onChange={(e) => setTurnover(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Registration Numbers</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Registration Numbers</label>
             <input
               type="text"
               value={registrationNumbers}
               onChange={(e) => setRegistrationNumbers(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">GST Registration ID</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">GST Registration ID</label>
             <input
               type="text"
               value={gstDetails}
               onChange={(e) => setGstDetails(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wide">Quality Certifications (eg: ISO, CMMI)</label>
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Quality Certifications (eg: ISO, CMMI)</label>
             <input
               type="text"
               value={certifications}
               onChange={(e) => setCertifications(e.target.value)}
               placeholder="e.g. ISO 9001:2015, ISO 27001"
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 focus:border-brand-500 focus:outline-none text-xs text-slate-200"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary-500 focus:bg-white focus:outline-none text-xs text-slate-800 transition-colors duration-200"
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+        <div className="flex items-center space-x-3.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
           <input
             type="checkbox"
             id="msme_checkbox"
             checked={msmeStatus}
             onChange={(e) => setMsmeStatus(e.target.checked)}
-            className="w-4 h-4 rounded text-brand-500 bg-slate-900 border-slate-700 focus:ring-brand-500 cursor-pointer"
+            className="w-4 h-4 rounded text-primary-500 bg-white border-slate-300 focus:ring-primary-500 cursor-pointer"
           />
-          <label htmlFor="msme_checkbox" className="text-xs font-bold text-white cursor-pointer select-none">
+          <label htmlFor="msme_checkbox" className="text-xs font-bold text-slate-900 cursor-pointer select-none">
             Registered as MSME Enterprise
           </label>
-          <span className="block text-[9px] text-slate-500 italic pl-2">
-            // MSMEs receive exemptions on earnest money deposits (EMD) and qualification thresholds in government tenders.
+          <span className="block text-[9px] text-slate-500 italic pl-2 font-mono">
+            // MSMEs receive exemptions on EMD and eligibility thresholds in government bids.
           </span>
         </div>
       </div>
 
       {/* SECTION 2: GEO & CATEGORIES TAGS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
         
         {/* Geographic operational scope */}
-        <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-4">
-          <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
-            <MapPin className="w-4 h-4 text-brand-400" />
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Geographic Scope</h3>
+        <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-4 shadow-premium">
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <MapPin className="w-4 h-4 text-primary-500" />
+            <h3 className="text-xs font-display font-bold text-slate-900 tracking-wide">Geographic Scope</h3>
           </div>
           
           <div className="flex gap-2">
@@ -212,12 +210,12 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
               value={geoInput}
               onChange={(e) => setGeoInput(e.target.value)}
               placeholder="Add location..."
-              className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200"
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:border-primary-500 focus:outline-none"
             />
             <button 
               type="button" 
               onClick={handleAddGeo}
-              className="p-2 rounded-xl bg-slate-800 text-brand-400 hover:bg-slate-700"
+              className="p-2.5 rounded-xl bg-slate-100 text-primary-600 hover:bg-slate-200 border border-slate-200"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -225,19 +223,19 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
 
           <div className="flex flex-wrap gap-1.5 pt-2">
             {geoList.map((tag, idx) => (
-              <span key={idx} className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 border border-slate-750 text-[10px] text-slate-300 font-semibold uppercase">
+              <span key={idx} className="flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-[10px] text-slate-700 font-bold uppercase shadow-sm">
                 <span>{tag}</span>
-                <button type="button" onClick={() => handleRemoveGeo(idx)} className="text-slate-500 hover:text-slate-355 font-bold">×</button>
+                <button type="button" onClick={() => handleRemoveGeo(idx)} className="text-slate-400 hover:text-slate-700 font-bold">×</button>
               </span>
             ))}
           </div>
         </div>
 
         {/* Categories tags list */}
-        <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-4">
-          <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
-            <Tag className="w-4 h-4 text-brand-400" />
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Trade Categories</h3>
+        <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-4 shadow-premium">
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <Tag className="w-4 h-4 text-primary-500" />
+            <h3 className="text-xs font-display font-bold text-slate-900 tracking-wide">Trade Categories</h3>
           </div>
           
           <div className="flex gap-2">
@@ -246,12 +244,12 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
               value={catInput}
               onChange={(e) => setCatInput(e.target.value)}
               placeholder="Add category tag..."
-              className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200"
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:border-primary-500 focus:outline-none"
             />
             <button 
               type="button" 
               onClick={handleAddCat}
-              className="p-2 rounded-xl bg-slate-800 text-brand-400 hover:bg-slate-700"
+              className="p-2.5 rounded-xl bg-slate-100 text-primary-600 hover:bg-slate-200 border border-slate-200"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -259,9 +257,9 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
 
           <div className="flex flex-wrap gap-1.5 pt-2">
             {catList.map((tag, idx) => (
-              <span key={idx} className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 border border-slate-750 text-[10px] text-slate-300 font-semibold uppercase">
+              <span key={idx} className="flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-[10px] text-slate-700 font-bold uppercase shadow-sm">
                 <span>{tag}</span>
-                <button type="button" onClick={() => handleRemoveCat(idx)} className="text-slate-500 hover:text-slate-355 font-bold">×</button>
+                <button type="button" onClick={() => handleRemoveCat(idx)} className="text-slate-400 hover:text-slate-700 font-bold">×</button>
               </span>
             ))}
           </div>
@@ -270,26 +268,26 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
       </div>
 
       {/* SECTION 3: PAST COMPLETED PROJECTS */}
-      <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-6">
-        <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
-          <Briefcase className="w-4 h-4 text-brand-400" />
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider">Completed Project Logs</h3>
+      <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-6 shadow-premium">
+        <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+          <Briefcase className="w-4 h-4 text-primary-500" />
+          <h3 className="text-xs font-display font-bold text-slate-900 tracking-wide">Completed Project Logs</h3>
         </div>
 
         {/* Existing Projects table list */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {pastProjects.map((p, idx) => (
-            <div key={idx} className="p-3.5 rounded-xl bg-[#0F172A]/40 border border-slate-800 flex items-center justify-between text-xs font-medium">
+            <div key={idx} className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-medium shadow-sm">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-brand-400 block">{p.client} (Yr {p.year})</span>
-                <span className="text-slate-200 block font-bold">{p.title}</span>
+                <span className="text-[9px] font-mono font-bold text-primary-600 block">{p.client} (Yr {p.year})</span>
+                <span className="text-slate-900 block font-bold">{p.title}</span>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="font-extrabold text-slate-200">₹ {p.value.toLocaleString()}</span>
+                <span className="font-bold text-slate-900 font-mono">₹ {p.value.toLocaleString()}</span>
                 <button 
                   type="button" 
                   onClick={() => handleRemoveProject(idx)}
-                  className="p-1.5 rounded-lg hover:bg-rose-950/20 hover:text-rose-400 text-slate-500"
+                  className="p-1.5 rounded-lg hover:bg-danger/10 hover:text-danger text-slate-400 border border-transparent hover:border-danger/25 transition-all"
                 >
                   <Trash className="w-3.5 h-3.5" />
                 </button>
@@ -299,34 +297,34 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
         </div>
 
         {/* Interactive Add Project form row */}
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-850 space-y-4">
-          <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">// Register Completed Project Credentials</h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-xl bg-slate-50/50 border border-slate-200 space-y-4">
+          <h4 className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest">// Register Completed Project Credentials</h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 select-none">
             <input
               type="text"
               value={projTitle}
               onChange={(e) => setProjTitle(e.target.value)}
               placeholder="Project Name..."
-              className="px-3 py-2 rounded-lg bg-[#0F172A] border border-slate-800 text-xs text-slate-200"
+              className="px-3.5 py-2.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:border-primary-500 focus:outline-none"
             />
             <input
               type="text"
               value={projClient}
               onChange={(e) => setProjClient(e.target.value)}
               placeholder="Client entity..."
-              className="px-3 py-2 rounded-lg bg-[#0F172A] border border-slate-800 text-xs text-slate-200"
+              className="px-3.5 py-2.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:border-primary-500 focus:outline-none"
             />
             <input
               type="number"
               value={projValue || ''}
               onChange={(e) => setProjValue(Number(e.target.value))}
               placeholder="Contract Value (₹)..."
-              className="px-3 py-2 rounded-lg bg-[#0F172A] border border-slate-800 text-xs text-slate-200"
+              className="px-3.5 py-2.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:border-primary-500 focus:outline-none"
             />
             <button
               type="button"
               onClick={handleAddProject}
-              className="py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-brand-400 font-bold text-xs border border-slate-700"
+              className="py-2 px-4 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-primary-650 transition shadow-sm"
             >
               Add Project Log
             </button>
@@ -335,11 +333,11 @@ export default function CompanyProfile({ company, onSaveProfile, saving }: Compa
       </div>
 
       {/* FINAL ACTION SUBMIT */}
-      <div className="flex justify-end shrink-0">
+      <div className="flex justify-end shrink-0 select-none">
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center space-x-2 py-3 px-8 rounded-xl bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs shadow-lg hover:scale-[1.02] disabled:scale-100 transition-all disabled:opacity-50"
+          className="flex items-center space-x-2 py-3 px-8 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-premium-glow hover:scale-[1.02] disabled:scale-100 transition-all disabled:opacity-50"
         >
           <CheckCircle className="w-4 h-4" />
           <span>{saving ? 'Saving updates...' : 'Save Profile Settings'}</span>
