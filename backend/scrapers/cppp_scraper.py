@@ -51,6 +51,30 @@ class CPPPScraper(BaseScraper):
                 continue
         return None
 
+    def build_stable_cppp_url(self, href: str, tender_ref: str) -> Optional[str]:
+        """
+        Build a stable, session-free CPPP URL.
+        The `tendersfullview` URLs contain embedded session tokens (A13h1...) that expire.
+        Instead, use the NIC eProcure advanced search URL with the tender reference.
+        """
+        # Try to extract numeric tender ID from first base64 segment of the URL
+        import base64
+        try:
+            path_parts = href.rstrip('/').split('/')
+            # The base64 segments are separated by A13h1 in CPPP URLs
+            first_segment = path_parts[-1].split('A13h1')[0]
+            decoded = base64.b64decode(first_segment + '==').decode('utf-8', errors='ignore')
+            if decoded.isdigit():
+                # Direct NIC eProcure URL with numeric tender ID
+                return f"https://eprocure.gov.in/eprocure/app?page=FrontEndTenderDetails&service=page&id={decoded}"
+        except Exception:
+            pass
+
+        # Fallback: NIC eProcure advanced search for this tender reference
+        from urllib.parse import quote
+        safe_ref = quote(tender_ref.strip(), safe='')
+        return f"https://eprocure.gov.in/eprocure/app?page=FrontEndAdvancedSearchPage&service=page&searchKey={safe_ref}"
+
     def normalize_cppp_link(self, href: str) -> Optional[str]:
         original_href = href
         href = href.strip()
@@ -156,18 +180,27 @@ class CPPPScraper(BaseScraper):
                 title = title_ref.rsplit("/", 1)[0].strip()
 
             deadline = self.parse_date(closing_date)
-            pdf_link = None
+
+            # Build a stable, session-free URL for this tender
+            # The session-based tendersfullview URLs expire immediately after scraping
+            stable_url = None
             links = row.find_all("a", href=True)
             for a in links:
                 href = a["href"]
                 normalized = self.normalize_cppp_link(href)
-                if normalized:
-                    logger.debug(f"CPPP scraper normalized URL: original={href}, normalized={normalized}")
-                    pdf_link = normalized
+                if normalized and "tendersfullview" in normalized:
+                    stable_url = self.build_stable_cppp_url(normalized, tender_id)
+                    break
+                elif normalized:
+                    stable_url = normalized
                     break
 
-            if pdf_link is None:
-                logger.warning(f"CPPP scraper failed to extract a valid URL from row: {title_ref}")
+            # Final fallback: CPPP search by reference number
+            if not stable_url:
+                from urllib.parse import quote
+                safe_ref = quote(tender_id.strip(), safe='')
+                stable_url = f"https://eprocure.gov.in/eprocure/app?page=FrontEndAdvancedSearchPage&service=page&searchKey={safe_ref}"
+                logger.warning(f"CPPP scraper using search fallback URL for: {tender_id}")
 
             location = self.infer_location(organization, title)
 
@@ -187,7 +220,7 @@ class CPPPScraper(BaseScraper):
                 "budget": None,
                 "deadline": deadline,
                 "eligibility_criteria": eligibility_text,
-                "source_url": pdf_link or self.base_url,
+                "source_url": stable_url,
                 "source_name": "CPPP",
                 "raw_html": str(row)
             })

@@ -32,6 +32,7 @@ export default function TenderDetails({
   onTriggerReport
 }: TenderDetailsProps) {
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string>('');
 
   const getMatchBadge = (status: string) => {
     switch (status) {
@@ -61,6 +62,7 @@ export default function TenderDetails({
 
   const handleDownload = async (format: string) => {
     setDownloadingFormat(format);
+    setDownloadError('');
     try {
       const file_name = await onTriggerReport(format);
       if (file_name) {
@@ -73,7 +75,7 @@ export default function TenderDetails({
         });
 
         if (!response.ok) {
-          throw new Error('Download request failed.');
+          throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
         }
 
         const blob = await response.blob();
@@ -85,9 +87,12 @@ export default function TenderDetails({
         link.click();
         link.remove();
         window.URL.revokeObjectURL(downloadUrl);
+      } else {
+        setDownloadError('Report generation failed or timed out. Check logs and try again.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setDownloadError(e.message || 'Download failed. Please try again.');
     } finally {
       setDownloadingFormat(null);
     }
@@ -267,7 +272,11 @@ export default function TenderDetails({
 
       {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
       {eligibilityReport && (
-        <div className="p-5 border-t border-slate-800/80 bg-slate-900/50 flex gap-3 shrink-0">
+        <div className="p-5 border-t border-slate-800/80 bg-slate-900/50 flex flex-col gap-3 shrink-0">
+          {downloadError && (
+            <span className="text-[10px] text-rose-400 font-semibold text-center">{downloadError}</span>
+          )}
+          <div className="flex gap-3">
           <button
             onClick={() => handleDownload('pdf')}
             disabled={downloadingFormat !== null}
@@ -285,6 +294,7 @@ export default function TenderDetails({
             <Download className="w-3.5 h-3.5" />
             <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
           </button>
+          </div>
         </div>
       )}
       

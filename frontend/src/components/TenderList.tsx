@@ -244,10 +244,11 @@ export default function TenderList({
                         <span className="font-bold text-slate-300">{t.source_name}</span>
                         {t.source_url && (
                           <a
-                            href={encodeURI(t.source_url)}
+                            href={t.source_url}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noreferrer noopener"
                             className="flex items-center text-[10px] text-brand-400 hover:text-brand-500 font-semibold space-x-0.5"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <span>Bid Doc Link</span>
                             <ExternalLink className="w-2.5 h-2.5" />

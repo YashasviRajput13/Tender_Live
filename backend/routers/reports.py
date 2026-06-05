@@ -1,6 +1,7 @@
 import os
 import uuid
 import logging
+import threading
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -49,9 +50,18 @@ def trigger_report_compilation(
     db.commit()
     db.refresh(new_task)
 
-    # Trigger worker task
-    generate_reports.delay(task_id, format_type, company.id)
-    logger.info(f"Triggered background {format_type.upper()} report generation. Task ID: {task_id}")
+    # Trigger worker task (with local thread fallback if Redis/Celery is unavailable)
+    try:
+        generate_reports.delay(task_id, format_type, company.id)
+        logger.info(f"Triggered background {format_type.upper()} report generation. Task ID: {task_id}")
+    except Exception as celery_err:
+        logger.warning(f"Redis/Celery unavailable for report task, falling back to local thread: {str(celery_err)}")
+        threading.Thread(
+            target=generate_reports.run,
+            args=(task_id, format_type, company.id),
+            daemon=True
+        ).start()
+        logger.info(f"Started local report generation thread for Task ID: {task_id}")
 
     return new_task
 

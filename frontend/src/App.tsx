@@ -178,6 +178,23 @@ export default function App() {
     }
   }, [token]);
 
+  // Global 401 interceptor — auto-logout when token expires
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Token expired or invalid — clear and force re-login
+          localStorage.removeItem('token');
+          setToken(null);
+          setCurrentUser(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => axios.interceptors.response.eject(interceptorId);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (pollingTimerRef.current) {
@@ -304,9 +321,9 @@ export default function App() {
           }];
         });
 
-        if (activeUploadTaskIdRef.current === data.task_id && data.status === 'completed') {
+        if (activeUploadTaskIdRef.current === data.task_id && (data.status === 'completed' || data.status === 'failed')) {
           setActiveUploadTaskId(null);
-          fetchUserData();
+          if (data.status === 'completed') fetchUserData();
         }
       });
 
@@ -444,22 +461,35 @@ export default function App() {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const response = await axios.post(`${API_BASE_URL}/api/reports?format=${format}`, {}, config);
-      
       const task = response.data;
-      // Simple synchronous polling wait or return name
-      await new Promise(resolve => setTimeout(resolve, 3500)); // wait for task to compile
-      
-      // Fetch latest completed file
-      const statusResponse = await axios.get(`${API_BASE_URL}/api/tasks/${task.id}`, config);
-      if (statusResponse.data.status === 'completed' && statusResponse.data.log_messages.length > 0) {
-        const lastLog = statusResponse.data.log_messages[statusResponse.data.log_messages.length - 1].message;
-        // Format: 'Report compiled: TenderAI_Catalog_XXXX.xlsx'
-        const parts = lastLog.split('compiled: ');
-        if (parts.length > 1) {
-          return parts[1].trim();
+
+      // Poll until task completes (up to 60s, checking every 1s)
+      const maxAttempts = 60;
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const statusResponse = await axios.get(`${API_BASE_URL}/api/tasks/${task.id}`, config);
+        const taskData = statusResponse.data;
+
+        if (taskData.status === 'completed' && taskData.log_messages?.length > 0) {
+          // Find the log entry that has the file name: "Report generated successfully: TenderAI_XXX.pdf"
+          const compiledLog = (taskData.log_messages as any[]).slice().reverse().find(
+            (l: any) => l.message?.includes('generated successfully: ') || l.message?.includes('compiled: ')
+          );
+          if (compiledLog) {
+            const splitToken = compiledLog.message.includes('generated successfully: ') 
+              ? 'generated successfully: ' 
+              : 'compiled: ';
+            return compiledLog.message.split(splitToken)[1]?.trim() || null;
+          }
+        }
+
+        if (taskData.status === 'failed') {
+          const errorLog = (taskData.log_messages as any[])?.slice().reverse().find((l: any) => l.level === 'ERROR');
+          throw new Error(errorLog?.message || 'Report generation failed.');
         }
       }
-      return null;
+
+      throw new Error('Report generation timed out. Please try again.');
     } catch (e) {
       console.error(e);
       return null;

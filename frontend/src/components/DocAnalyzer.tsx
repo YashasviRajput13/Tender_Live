@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Upload, 
   FileText, 
@@ -58,6 +58,14 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
       setUploading(false);
     }
   };
+
+  // Surface failure message from task logs when the task fails
+  useEffect(() => {
+    if (activeUploadTask?.status === 'failed') {
+      const errorLog = activeUploadTask.log_messages?.slice().reverse().find(l => l.level === 'ERROR');
+      setErrorMsg(errorLog?.message || 'Document analysis failed. Please try again.');
+    }
+  }, [activeUploadTask?.status]);
 
   return (
     <div className="p-8 max-w-3xl space-y-8 font-['Plus_Jakarta_Sans'] font-medium select-text">
@@ -142,7 +150,11 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-white">
-                {activeUploadTask.status === 'running' ? 'Extracting text and qualifications...' : 'Document parsed. Preparing matching...'}
+                {activeUploadTask.status === 'failed'
+                  ? 'Analysis failed. See error in logs below.'
+                  : activeUploadTask.status === 'running'
+                    ? 'Extracting text and qualifications...'
+                    : 'Document parsed. Preparing matching...'}
               </h4>
               <p className="text-[10px] text-slate-400">Chaining into the Eligibility evaluator.</p>
             </div>
