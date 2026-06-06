@@ -1,5 +1,6 @@
 import os
 import logging
+import threading
 from datetime import datetime
 from decimal import Decimal
 from celery import shared_task
@@ -17,6 +18,20 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
 logger = logging.getLogger(__name__)
+
+def _fire_task_update(task_id, progress, status, agent, message, logs):
+    """Run trigger_task_update in a fresh event loop — safe to call from threads."""
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(trigger_task_update(task_id, progress, status, agent, message, logs))
+    except Exception as e:
+        logger.warning(f"SSE update failed (non-critical): {str(e)}")
+    finally:
+        try:
+            loop.close()
+        except Exception:
+            pass
 
 @shared_task(name="workers.report_gen.generate_reports")
 def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = None):
@@ -38,7 +53,7 @@ def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = N
     task.log_messages = log_messages
     db.commit()
     
-    asyncio.run(trigger_task_update(task_id, 10, "running", "completed", "Generating reports...", log_messages))
+    _fire_task_update(task_id, 10, "running", "completed", "Generating reports...", log_messages)
 
     try:
         # Fetch target company
@@ -62,7 +77,7 @@ def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = N
             log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": f"Assembling {len(reports)} tender matches into PDF briefing templates..."})
             task.log_messages = log_messages
             db.commit()
-            asyncio.run(trigger_task_update(task_id, 40, "running", "completed", "Assembling PDF components...", log_messages))
+            _fire_task_update(task_id, 40, "running", "completed", "Assembling PDF components...", log_messages)
 
             # Build ReportLab Doc
             doc = SimpleDocTemplate(file_path, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
@@ -180,7 +195,7 @@ def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = N
             log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": f"Mapping {len(reports)} matching items into Excel catalogs..."})
             task.log_messages = log_messages
             db.commit()
-            asyncio.run(trigger_task_update(task_id, 40, "running", "completed", "Assembling Excel columns...", log_messages))
+            _fire_task_update(task_id, 40, "running", "completed", "Assembling Excel columns...", log_messages)
 
             records = []
             for r in reports:
@@ -214,7 +229,7 @@ def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = N
         task.log_messages = log_messages
         db.commit()
         
-        asyncio.run(trigger_task_update(task_id, 100, "completed", "completed", f"Report compiled: {file_name}", log_messages))
+        _fire_task_update(task_id, 100, "completed", "completed", f"Report compiled: {file_name}", log_messages)
         
         # Save reference file name to result context if needed, or simply return it
         db.close()
@@ -229,6 +244,6 @@ def generate_reports(task_id: str, format_type: str = "pdf", company_id: int = N
         task.log_messages = log_messages
         db.commit()
         
-        asyncio.run(trigger_task_update(task_id, 100, "failed", "completed", f"Report compilation failed: {str(e)}", log_messages))
+        _fire_task_update(task_id, 100, "failed", "completed", f"Report compilation failed: {str(e)}", log_messages)
         db.close()
         return False

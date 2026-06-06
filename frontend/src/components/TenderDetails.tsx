@@ -30,6 +30,7 @@ export default function TenderDetails({
   onTriggerReport
 }: TenderDetailsProps) {
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string>('');
 
   const getMatchBadge = (status: string) => {
     switch (status) {
@@ -59,6 +60,7 @@ export default function TenderDetails({
 
   const handleDownload = async (format: string) => {
     setDownloadingFormat(format);
+    setDownloadError('');
     try {
       const file_name = await onTriggerReport(format);
       if (file_name) {
@@ -71,7 +73,7 @@ export default function TenderDetails({
         });
 
         if (!response.ok) {
-          throw new Error('Download request failed.');
+          throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
         }
 
         const blob = await response.blob();
@@ -83,9 +85,12 @@ export default function TenderDetails({
         link.click();
         link.remove();
         window.URL.revokeObjectURL(downloadUrl);
+      } else {
+        setDownloadError('Report generation failed or timed out. Check logs and try again.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setDownloadError(e.message || 'Download failed. Please try again.');
     } finally {
       setDownloadingFormat(null);
     }
@@ -271,30 +276,84 @@ export default function TenderDetails({
             </div>
           )}
 
+{/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
+{eligibilityReport && (
+  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
+    {downloadError && (
+      <span className="text-[10px] text-danger font-semibold text-center">
+        {downloadError}
+      </span>
+    )}
+
+    <div className="flex gap-3">
+      <button
+        onClick={() => handleDownload('pdf')}
+        disabled={downloadingFormat !== null}
+        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+      >
+        <Download className="w-3.5 h-3.5 text-primary-500" />
+        <span>
+          {downloadingFormat === 'pdf'
+            ? 'Generating PDF...'
+            : 'Download Briefing (PDF)'}
+        </span>
+      </button>
+
+      <button
+        onClick={() => handleDownload('excel')}
+        disabled={downloadingFormat !== null}
+        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+      >
+        <Download className="w-3.5 h-3.5 text-primary-500" />
+        <span>
+          {downloadingFormat === 'excel'
+            ? 'Compiling Sheet...'
+            : 'Download Catalog (XLSX)'}
+        </span>
+      </button>
+    </div>
+  </div>
+)}
         </div>
 
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
-        {eligibilityReport && (
-          <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex gap-3 shrink-0">
-            <button
-              onClick={() => handleDownload('pdf')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-primary-500" />
-              <span>{downloadingFormat === 'pdf' ? 'Generating PDF...' : 'Download Briefing (PDF)'}</span>
-            </button>
-            
-            <button
-              onClick={() => handleDownload('excel')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-primary-500" />
-              <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
-            </button>
-          </div>
-        )}
+{eligibilityReport && (
+  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
+    {downloadError && (
+      <span className="text-[10px] text-danger font-semibold text-center">
+        {downloadError}
+      </span>
+    )}
+
+    <div className="flex gap-3">
+      <button
+        onClick={() => handleDownload('pdf')}
+        disabled={downloadingFormat !== null}
+        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+      >
+        <Download className="w-3.5 h-3.5 text-primary-500" />
+        <span>
+          {downloadingFormat === 'pdf'
+            ? 'Generating PDF...'
+            : 'Download Briefing (PDF)'}
+        </span>
+      </button>
+
+      <button
+        onClick={() => handleDownload('excel')}
+        disabled={downloadingFormat !== null}
+        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+      >
+        <Download className="w-3.5 h-3.5 text-primary-500" />
+        <span>
+          {downloadingFormat === 'excel'
+            ? 'Compiling Sheet...'
+            : 'Download Catalog (XLSX)'}
+        </span>
+      </button>
+    </div>
+  </div>
+)}
         
       </motion.div>
     </>

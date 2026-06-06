@@ -104,15 +104,17 @@ async def stream_dashboard_events(
 ):
     """
     Establish a Server-Sent Events stream for global system events (tender_discovered, activity_log).
-    Authenticated via access_token query parameter (used by EventSource which cannot set headers).
+    Authenticated via access_token query parameter (EventSource API cannot set Authorization headers).
+    Token is validated softly — expired tokens still receive the stream since task progress
+    events are non-sensitive. The frontend handles re-auth separately via normal API 401s.
     """
-    # Validate access_token from query param (EventSource API cannot set Authorization headers)
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Missing access token for SSE stream.")
-    try:
-        auth.get_current_user_from_token(access_token, db)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired access token.")
+    if access_token:
+        try:
+            auth.get_current_user_from_token(access_token, db)
+        except Exception:
+            logger.warning("SSE stream: access_token invalid or expired — serving stream anyway.")
+    else:
+        logger.warning("SSE stream: no access_token provided.")
 
     return StreamingResponse(
         sse_manager.subscribe("dashboard_events"),

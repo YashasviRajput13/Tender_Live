@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     
     JWT_SECRET_KEY: str = "super_secure_jwt_token_secret_key_change_in_production_123456"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days
     
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""

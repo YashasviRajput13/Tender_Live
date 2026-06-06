@@ -2,6 +2,7 @@ import os
 import uuid
 import shutil
 import logging
+import threading
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlalchemy.orm import Session
 import models, schemas, auth
@@ -70,8 +71,17 @@ def upload_tender_document(
     db.commit()
     db.refresh(new_task)
 
-    # 4. Trigger Celery worker pipeline
-    process_tender_document.delay(task_id, shell_tender.id, saved_file_path)
-    logger.info(f"Triggered background Document analysis task {task_id} for Tender {shell_tender.id}")
+    # 4. Trigger Celery worker pipeline (with local thread fallback if Redis/Celery is unavailable)
+    try:
+        process_tender_document.delay(task_id, shell_tender.id, saved_file_path)
+        logger.info(f"Triggered background Document analysis task {task_id} for Tender {shell_tender.id}")
+    except Exception as celery_err:
+        logger.warning(f"Redis/Celery unavailable for document task, falling back to local thread execution: {str(celery_err)}")
+        threading.Thread(
+            target=process_tender_document.run,
+            args=(task_id, shell_tender.id, saved_file_path),
+            daemon=True
+        ).start()
+        logger.info(f"Started local document analysis thread for Task ID: {task_id}")
 
     return new_task
