@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Notification } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -49,146 +50,134 @@ export default function Layout({
   ];
 
   return (
-    <div className="flex h-screen bg-background text-slate-900 overflow-hidden font-sans select-none">
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-hidden font-sans select-none transition-colors duration-300">
       
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-surface border-r border-slate-200 flex flex-col justify-between shrink-0 z-20">
-        <div>
-          {/* Logo */}
-          <div className="p-6 border-b border-slate-200 flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-premium-glow">
-              🔮
-            </div>
-            <div>
-              <span className="font-display font-extrabold text-lg tracking-tight text-slate-900 leading-none">TenderLive</span>
-              <span className="block text-[11px] text-primary-500 font-semibold tracking-widest uppercase mt-0.5">Enterprise AI</span>
-            </div>
+      {/* HEADER NAVBAR */}
+      <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between z-30 shrink-0 shadow-sm transition-colors duration-300">
+        
+        {/* Logo (Left) */}
+        <div className="flex items-center space-x-3 select-none shrink-0">
+          <div className="w-10 h-10 bg-[#C9A84C] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-premium-glow">
+            🔮
           </div>
- 
-          {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
+          <div>
+            <span className="font-display font-extrabold text-base tracking-tight text-slate-900 dark:text-white leading-none block">TenderLive</span>
+            <span className="block text-[10px] text-[#C9A84C] font-semibold tracking-widest uppercase mt-0.5">Enterprise AI</span>
+          </div>
+        </div>
+
+        {/* Capsule Navigation (Center) */}
+        <div className="flex items-center bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-inner relative shrink-0">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <div key={item.id} className="relative">
+                {/* Active indicator bar above button */}
+                {isActive && (
+                  <div className="absolute -top-[10px] left-1/2 -translate-x-1/2 w-8 h-1 bg-[#C9A84C] rounded-full shadow-[0_0_8px_#C9A84C]" />
+                )}
                 <button
-                  key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 ${
+                  className={`flex items-center space-x-2.5 px-5 h-11 rounded-full text-[14px] font-semibold tracking-wide transition-all duration-300 border ${
                     isActive 
-                      ? 'bg-primary-500/10 text-primary-500 border border-primary-500/20 shadow-premium' 
-                      : 'text-slate-600 hover:bg-slate-200/60 hover:text-slate-900 border border-transparent'
+                      ? 'bg-white dark:bg-slate-900 border-[#C9A84C] text-slate-900 dark:text-white shadow-[0_8px_24px_rgba(201,168,76,0.18)]' 
+                      : 'bg-transparent border-transparent text-slate-700 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white hover:border-[#C9A84C]/45 hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:translate-y-[-1px] active:scale-[0.98]'
                   }`}
                 >
-                  <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-primary-500' : 'text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 transition-colors duration-300 ${isActive ? 'text-[#C9A84C]' : 'text-slate-500 dark:text-slate-400'}`} />
                   <span>{item.label}</span>
                 </button>
-              );
-            })}
-          </nav>
+              </div>
+            );
+          })}
         </div>
- 
-        {/* User profile details bottom */}
-        <div className="p-4 border-t border-slate-200 space-y-4">
-          <div className="flex items-center space-x-3 bg-white border border-slate-200 p-3 rounded-2xl shadow-sm">
-            <div className="w-9 h-9 rounded-full bg-primary-500/10 border border-primary-500/25 flex items-center justify-center text-primary-600 font-bold text-sm shrink-0">
+
+        {/* Controls & User Profile (Right) */}
+        <div className="flex items-center space-x-4 shrink-0">
+          <AnimatedThemeToggler />
+          
+          {/* Notification Badge Bell */}
+          <div className="relative">
+            <button 
+              onClick={handleNotificationClick}
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 relative transition-all"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#C9A84C] rounded-full text-[10px] font-bold text-white flex items-center justify-center border border-white shadow-premium-glow animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Overlay Popover */}
+            <AnimatePresence>
+              {showNotifications && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2.5 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">System Alerts</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">{notifications.length} Total</span>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-2 pr-1 select-text">
+                      {notifications.length === 0 ? (
+                        <span className="block text-center py-6 text-xs text-slate-400 dark:text-slate-500 font-medium">No active alerts</span>
+                      ) : (
+                        notifications.map((n) => (
+                          <div key={n.id} className={`p-2.5 rounded-xl border text-xs leading-relaxed transition-all ${
+                            n.is_read ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400' : 'bg-[#C9A84C]/5 dark:bg-[#C9A84C]/10 border-[#C9A84C]/20 text-slate-800 dark:text-slate-200 font-medium'
+                          }`}>
+                            <p>{n.message}</p>
+                            <span className="block text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+                              {new Date(n.created_at).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="text-sm px-3.5 py-1.5 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/25 text-[#C9A84C] font-semibold flex items-center space-x-1.5 hidden xl:flex">
+            <span className="w-1.5 h-1.5 bg-[#C9A84C] rounded-full animate-pulse"></span>
+            <span className="tracking-wide font-mono">Live Node</span>
+          </div>
+
+          {/* User profile dropdown box */}
+          <div className="flex items-center space-x-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-1.5 pr-3 rounded-full select-none max-w-[200px]">
+            <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/25 flex items-center justify-center text-[#C9A84C] font-bold text-sm shrink-0">
               {currentUser?.full_name ? currentUser.full_name[0] : 'Y'}
             </div>
-            <div className="overflow-hidden">
-              <span className="block text-sm font-semibold text-slate-900 truncate">{currentUser?.full_name || 'Yashasvi Rajput'}</span>
-              <span className="block text-xs text-slate-500 font-mono truncate">{currentUser?.email}</span>
+            <div className="overflow-hidden leading-tight flex-1 hidden md:block">
+              <span className="block text-xs font-semibold text-slate-900 dark:text-white truncate">{currentUser?.full_name || 'Yashasvi Rajput'}</span>
+              <span className="block text-[9px] text-slate-500 dark:text-slate-450 font-semibold font-mono truncate">{currentUser?.email}</span>
             </div>
+            <button
+              onClick={onLogout}
+              title="Sign Out"
+              className="p-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-danger/10 hover:text-danger border border-slate-200 hover:border-danger/30 text-sm font-medium text-slate-600 transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
         </div>
-      </aside>
- 
-      {/* MAIN CONTENT SPACE */}
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10 bg-white">
-        
-        {/* HEADER */}
-        <header className="h-16 bg-white/75 border-b border-slate-200 px-8 flex items-center justify-between backdrop-blur-md z-30 shrink-0">
-          <div className="flex items-center space-x-2.5">
-            <Sparkles className="w-4.5 h-4.5 text-primary-500" />
-            <h1 className="text-sm font-semibold tracking-wide text-slate-500">
-              {activeTab === 'dashboard' && 'Intelligence Terminal'}
-              {activeTab === 'tenders' && 'Tenders Database'}
-              {activeTab === 'upload' && 'Document Intelligence'}
-              {activeTab === 'company' && 'Eligibility Matrix'}
-            </h1>
-          </div>
- 
-          <div className="flex items-center space-x-4">
-            {/* Notification Badge Bell */}
-            <div className="relative">
-              <button 
-                onClick={handleNotificationClick}
-                className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-750 relative transition-all"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 rounded-full text-[8px] font-bold text-white flex items-center justify-center border border-white shadow-premium-glow animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
- 
-              {/* Notification Overlay Popover */}
-              <AnimatePresence>
-                {showNotifications && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-200 rounded-2xl shadow-premium p-4 z-50 overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-2">
-                        <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider">System Alerts</span>
-                        <span className="text-[9px] text-slate-500 font-mono">{notifications.length} Total</span>
-                      </div>
-                      <div className="max-h-60 overflow-y-auto space-y-2 pr-1 select-text">
-                        {notifications.length === 0 ? (
-                          <span className="block text-center py-6 text-xs text-slate-500 font-medium">No active alerts</span>
-                        ) : (
-                          notifications.map((n) => (
-                            <div key={n.id} className={`p-2.5 rounded-xl border text-[11px] leading-relaxed transition-all ${
-                              n.is_read ? 'bg-slate-50/50 border-slate-100 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 font-medium'
-                            }`}>
-                              <p>{n.message}</p>
-                              <span className="block text-[8px] text-slate-450 mt-1 font-mono">
-                                {new Date(n.created_at).toLocaleTimeString()}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
- 
-            <div className="text-xs px-3.5 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-600 font-semibold flex items-center space-x-1.5 shadow-[inset_0_0_10px_rgba(249,115,22,0.02)]">
-              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-pulse"></span>
-              <span className="tracking-wide font-mono">Live Node Connected</span>
-            </div>
-          </div>
-        </header>
- 
-        {/* CHILDS VIEW */}
-        <main className="flex-1 overflow-y-auto bg-background">
-          {children}
-        </main>
-      </div>
+      </header>
+
+      {/* CHILDS VIEW */}
+      <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+        {children}
+      </main>
     </div>
   );
 }

@@ -24,16 +24,18 @@ export default {
         warning: '#F59E0B',
         danger: '#EF4444',
         slate: {
+          950: '#030712',
           900: '#111827', // Primary Text
+          850: '#182030',
           800: '#1F2937',
           750: '#E5E7EB', // Border Color
-          700: '#4B5563', // Secondary Text
-          650: '#6B7280',
-          600: '#9CA3AF',
-          500: '#D1D5DB',
-          400: '#E5E7EB', // Border
-          300: '#F3F4F6',
-          200: '#F8FAFC', // Secondary Background
+          700: '#1e293b', // Dark charcoal/light black
+          650: '#334155', // Dark gray/light black
+          600: '#334155',
+          500: '#111827', // Strong text black
+          400: '#334155', // Readable light black
+          300: '#E2E8F0', // Border
+          200: '#F1F5F9', // Secondary Background
           100: '#FFFFFF', // Primary Background
           50: '#FFFFFF'
         },
@@ -42,6 +44,16 @@ export default {
           600: '#EA580C',
           400: '#FDBA74',
         }
+      },
+      fontSize: {
+        'xs': ['0.9rem', { lineHeight: '1.35rem' }],   // scaled up for readability
+        'sm': ['1.0rem', { lineHeight: '1.5rem' }],     // scaled up for readability
+        'base': ['1.15rem', { lineHeight: '1.75rem' }], // scaled up for readability
+        'lg': ['1.3rem', { lineHeight: '1.85rem' }],    // scaled up for readability
+        'xl': ['1.45rem', { lineHeight: '2.1rem' }],    // scaled up for readability
+        '2xl': ['1.7rem', { lineHeight: '2.3rem' }],    // scaled up for readability
+        '3xl': ['2.15rem', { lineHeight: '2.6rem' }],   // scaled up for readability
+        '4xl': ['2.65rem', { lineHeight: '1.1' }],      // scaled up for readability
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],

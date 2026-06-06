@@ -36,22 +36,22 @@ export default function TenderDetails({
     switch (status) {
       case 'pass':
         return (
-          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-success/10 text-success border border-success/20 text-[9px] font-extrabold uppercase tracking-wider">
-            <Check className="w-3 h-3" />
+          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-[#C9A84C]/10 text-[#A07840] dark:text-[#C9A84C] border border-[#C9A84C]/20 text-[10px] font-extrabold uppercase tracking-wider">
+            <Check className="w-3 h-3 text-[#C9A84C]" />
             <span>Eligible</span>
           </span>
         );
       case 'fail':
         return (
-          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-danger/10 text-danger border border-danger/20 text-[9px] font-extrabold uppercase tracking-wider">
-            <X className="w-3 h-3" />
+          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-550 border border-slate-200 dark:border-slate-850 text-[10px] font-extrabold uppercase tracking-wider">
+            <X className="w-3 h-3 text-slate-400 dark:text-slate-650" />
             <span>Not Eligible</span>
           </span>
         );
       default:
         return (
-          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-warning/10 text-warning border border-warning/20 text-[9px] font-extrabold uppercase tracking-wider">
-            <AlertTriangle className="w-3 h-3" />
+          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[10px] font-extrabold uppercase tracking-wider">
+            <AlertTriangle className="w-3 h-3 text-slate-500" />
             <span>Conditional</span>
           </span>
         );
@@ -67,15 +67,17 @@ export default function TenderDetails({
         const token = localStorage.getItem('token');
         const url = `${API_BASE_URL}/api/reports/download?file_name=${encodeURIComponent(file_name)}`;
         const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
+<<<<<<< Updated upstream
 
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
         }
 
+=======
+        if (!response.ok) throw new Error('Download request failed.');
+>>>>>>> Stashed changes
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -99,47 +101,47 @@ export default function TenderDetails({
   return (
     <>
       {/* Drawer Overlay */}
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/30 dark:bg-slate-950/50 backdrop-blur-sm z-40" onClick={onClose} />
 
       {/* Drawer Sheet */}
       <motion.div 
         initial={{ x: 600, opacity: 0.9 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed inset-y-0 right-0 w-[600px] bg-white border-l border-slate-200 shadow-premium flex flex-col z-50 overflow-hidden font-sans select-none"
+        className="fixed inset-y-0 right-0 w-[600px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-[−8px_0_40px_rgba(0,0,0,0.08)] flex flex-col z-50 overflow-hidden font-sans select-none"
       >
         
         {/* DRAWER HEADER */}
-        <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900">
           <div>
-            <span className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-slate-500 block">// Bid Qualification Brief</span>
-            <h2 className="text-sm font-display font-extrabold text-slate-900 mt-1.5 truncate max-w-[420px]">
+            <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-[#C9A84C] block">// Bid Qualification Brief</span>
+            <h2 className="text-base font-display font-extrabold text-slate-900 dark:text-white mt-1.5 truncate max-w-[420px]">
               {tender.tender_id}
             </h2>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-800 border border-slate-200 transition-all"
+            className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-350 border border-slate-200 dark:border-slate-750/30 transition-all"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* DRAWER BODY SCROLLER */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 select-text">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 select-text bg-slate-50/50 dark:bg-slate-950/40">
           
           {/* Tender details header section */}
-          <div className="space-y-2.5">
-            <h1 className="text-base font-display font-bold text-slate-900 leading-snug">{tender.title}</h1>
-            <p className="text-xs text-slate-705 font-semibold">Procurement Body: <span className="text-slate-800 font-medium">{tender.department || 'N/A'}</span></p>
-            <div className="flex flex-wrap gap-2 pt-1.5">
-              <span className="text-[9px] font-mono font-bold px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 shadow-sm">
+            <h1 className="text-lg font-display font-bold text-slate-900 dark:text-white leading-snug">{tender.title}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Procurement Body: <span className="text-slate-800 dark:text-slate-250 font-semibold">{tender.department || 'N/A'}</span></p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-350 rounded-lg">
                 {tender.source_name}
               </span>
-              <span className="text-[9px] font-mono font-bold px-2.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-lg">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-350 rounded-lg">
                 Loc: {tender.location || 'N/A'}
               </span>
-              <span className="text-[9px] font-mono font-bold px-2.5 py-0.5 bg-primary-500/10 border border-primary-500/20 text-primary-600 rounded-lg">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 bg-[#C9A84C]/10 border border-[#C9A84C]/25 text-[#A07840] dark:text-[#C9A84C] rounded-lg">
                 Budget: {tender.budget ? `₹ ${tender.budget.toLocaleString()}` : 'Open Value'}
               </span>
             </div>
@@ -147,18 +149,18 @@ export default function TenderDetails({
 
           {/* IF NOT ANALYZED */}
           {!eligibilityReport && (
-            <div className="p-8 border border-slate-200 rounded-2xl bg-slate-50 text-center space-y-5 select-none">
-              <Sparkles className="w-7 h-7 text-primary-500 mx-auto animate-pulse" />
+            <div className="p-8 border border-dashed border-[#C9A84C]/30 rounded-2xl bg-[#C9A84C]/[0.03] text-center space-y-5 select-none">
+              <Sparkles className="w-7 h-7 text-[#C9A84C] mx-auto animate-pulse" />
               <div className="space-y-2">
-                <h3 className="text-xs font-bold text-slate-900">AI Agents Analysis Pending</h3>
-                <p className="text-[11px] text-slate-600 max-w-sm mx-auto leading-relaxed">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">AI Agents Analysis Pending</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
                   Evaluate custom eligibility alignment matrices, highlighted contract risks, and opportunity suitability rating based on corporate profile settings.
                 </p>
               </div>
               <button
                 onClick={() => onRunAnalysis(tender.id)}
                 disabled={analyzingTenderId === tender.id}
-                className="py-2 px-5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:bg-slate-100 disabled:text-slate-400 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-premium-glow transition-all inline-flex items-center space-x-2"
+                className="py-2.5 px-6 rounded-xl bg-[#C9A84C] hover:bg-[#A07840] disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 text-xs font-extrabold uppercase tracking-wider text-white shadow-premium-glow transition-all inline-flex items-center space-x-2 hover:scale-[1.02]"
               >
                 <Award className={`w-3.5 h-3.5 ${analyzingTenderId === tender.id ? 'animate-spin' : ''}`} />
                 <span>{analyzingTenderId === tender.id ? 'Evaluating alignment...' : 'Trigger Analysis'}</span>
@@ -168,42 +170,41 @@ export default function TenderDetails({
 
           {/* IF ANALYZED, DISPLAY COMPLETE SUITE */}
           {eligibilityReport && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               
               {/* OPPORTUNITY SUITABILITY CARD */}
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-inner">
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-[#C9A84C]/25 flex items-center justify-between shadow-sm hover:border-[#C9A84C]/45 transition-colors">
                 <div className="space-y-2">
-                  <span className="text-[9px] text-slate-500 font-extrabold uppercase tracking-widest block">Suitability Rating</span>
-                  <span className="text-3xl font-display font-black text-primary-600 text-glow-primary block leading-none">
-                    {eligibilityReport.opportunity_score}<span className="text-xs font-medium text-slate-500">/100</span>
+                  <span className="text-xs text-slate-450 dark:text-slate-500 font-extrabold uppercase tracking-widest block">Suitability Rating</span>
+                  <span className="text-4xl font-display font-black text-slate-900 dark:text-white block leading-none">
+                    {eligibilityReport.opportunity_score}<span className="text-xs font-medium text-slate-400">/100</span>
                   </span>
-                  <p className="text-[10px] text-slate-650 leading-relaxed max-w-[320px] font-medium">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-[320px] font-medium">
                     Calculated weightings: financial capacity (20%), geographic fit (15%), and historical experience compatibility.
                   </p>
                 </div>
 
                 {/* Dynamic SVG radial score loader */}
-                <div className="relative w-18 h-18 shrink-0 select-none">
+                <div className="relative w-20 h-20 shrink-0 select-none">
                   <svg className="w-full h-full" viewBox="0 0 36 36">
                     <path
-                      className="text-slate-200"
+                      className="text-slate-200 dark:text-slate-800"
                       strokeWidth="2.5"
                       stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      className="text-primary-500"
+                      stroke="#C9A84C"
                       strokeDasharray={`${eligibilityReport.opportunity_score}, 100`}
                       strokeWidth="3"
                       strokeLinecap="round"
-                      stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[9px] font-extrabold text-slate-500 uppercase">
+                    <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase">
                       {eligibilityReport.eligibility === 'eligible' ? 'High' : eligibilityReport.eligibility === 'partially_eligible' ? 'Mid' : 'Low'}
                     </span>
                   </div>
@@ -212,20 +213,20 @@ export default function TenderDetails({
 
               {/* ALIGNMENT MATRIX TABLE */}
               <div className="space-y-3">
-                <h3 className="text-[10px] font-mono font-extrabold text-slate-500 uppercase tracking-widest">// Requirement Match Matrix</h3>
-                <div className="border border-slate-200 rounded-xl overflow-hidden bg-white divide-y divide-slate-200 shadow-sm">
+                <h3 className="text-xs font-mono font-extrabold text-[#C9A84C] uppercase tracking-widest">// Requirement Match Matrix</h3>
+                <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 shadow-sm">
                   {[
                     { label: 'Financial Capacity', match: eligibilityReport.requirements_analysis.financial_match },
                     { label: 'Technical Qualifications', match: eligibilityReport.requirements_analysis.technical_match },
                     { label: 'Historical Experiences', match: eligibilityReport.requirements_analysis.experience_match },
                     { label: 'Location Boundaries', match: eligibilityReport.requirements_analysis.location_match }
                   ].map((item, idx) => (
-                    <div key={idx} className="p-4 flex flex-col space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-slate-800">{item.label}</span>
+                    <div key={idx} className="p-4 flex flex-col space-y-1.5 hover:bg-slate-50 dark:hover:bg-slate-850/40 transition-colors">
+                      <div className="flex items-center justify-between text-sm font-bold">
+                        <span className="text-slate-800 dark:text-slate-200">{item.label}</span>
                         {getMatchBadge(item.match?.status || 'conditional')}
                       </div>
-                      <span className="block text-[10px] text-slate-655 leading-relaxed font-medium">
+                      <span className="block text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                         {item.match?.details}
                       </span>
                     </div>
@@ -235,8 +236,8 @@ export default function TenderDetails({
 
               {/* EXECUTIVE SUMMARY BRIEF */}
               <div className="space-y-2.5">
-                <h3 className="text-[10px] font-mono font-extrabold text-slate-500 uppercase tracking-widest">// Executive briefing summary</h3>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed shadow-inner">
+                <h3 className="text-xs font-mono font-extrabold text-[#C9A84C] uppercase tracking-widest">// Executive Briefing Summary</h3>
+                <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-sm">
                   {eligibilityReport.summary}
                 </div>
               </div>
@@ -244,11 +245,11 @@ export default function TenderDetails({
               {/* KNOWN BID RISKS */}
               {eligibilityReport.risk_analysis?.risks && eligibilityReport.risk_analysis.risks.length > 0 && (
                 <div className="space-y-2.5">
-                  <h3 className="text-[10px] font-mono font-extrabold text-slate-500 uppercase tracking-widest">// Potential Bidding Risks</h3>
-                  <div className="p-4 rounded-xl bg-danger/5 border border-danger/15 text-xs space-y-2.5">
+                  <h3 className="text-xs font-mono font-extrabold text-[#C9A84C] uppercase tracking-widest">// Potential Bidding Risks</h3>
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 border-l-[#C9A84C] dark:border-l-[#C9A84C] border-l-4 text-sm space-y-2.5 shadow-sm">
                     {eligibilityReport.risk_analysis.risks.map((risk, idx) => (
-                      <div key={idx} className="flex items-start space-x-2 text-slate-750 font-medium">
-                        <span className="text-danger font-bold leading-none select-none mt-0.5">•</span>
+                      <div key={idx} className="flex items-start space-x-2 text-slate-800 dark:text-slate-300 font-medium">
+                        <span className="text-[#C9A84C] font-bold leading-none select-none mt-0.5">•</span>
                         <span>{risk}</span>
                       </div>
                     ))}
@@ -259,14 +260,14 @@ export default function TenderDetails({
               {/* COMPLIANCE CHECKLIST */}
               {eligibilityReport.checklist?.submission_checklist && eligibilityReport.checklist.submission_checklist.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-[10px] font-mono font-extrabold text-slate-500 uppercase tracking-widest">// Required Submission documents</h3>
+                  <h3 className="text-xs font-mono font-extrabold text-[#C9A84C] uppercase tracking-widest">// Required Submission Documents</h3>
                   <div className="space-y-2">
                     {eligibilityReport.checklist.submission_checklist.map((item, idx) => (
-                      <div key={idx} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center space-x-3 text-xs">
-                        <div className="w-4.5 h-4.5 rounded-lg border border-primary-500/30 flex items-center justify-center shrink-0">
-                          <Check className="w-3 h-3 text-primary-500" />
+                      <div key={idx} className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#C9A84C]/25 dark:hover:border-[#C9A84C]/45 flex items-center space-x-3 text-sm transition-colors">
+                        <div className="w-5 h-5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/5 flex items-center justify-center shrink-0">
+                          <Check className="w-3 h-3 text-[#C9A84C]" />
                         </div>
-                        <span className="text-slate-700 font-medium">{item}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -317,6 +318,7 @@ export default function TenderDetails({
         </div>
 
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
+<<<<<<< Updated upstream
 {eligibilityReport && (
   <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
     {downloadError && (
@@ -354,6 +356,29 @@ export default function TenderDetails({
     </div>
   </div>
 )}
+=======
+        {eligibilityReport && (
+          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-3 shrink-0">
+            <button
+              onClick={() => handleDownload('pdf')}
+              disabled={downloadingFormat !== null}
+              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
+              <span>{downloadingFormat === 'pdf' ? 'Generating PDF...' : 'Download Briefing (PDF)'}</span>
+            </button>
+            
+            <button
+              onClick={() => handleDownload('excel')}
+              disabled={downloadingFormat !== null}
+              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
+              <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
+            </button>
+          </div>
+        )}
+>>>>>>> Stashed changes
         
       </motion.div>
     </>
