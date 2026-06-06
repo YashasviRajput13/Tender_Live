@@ -69,15 +69,9 @@ export default function TenderDetails({
         const response = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` }
         });
-<<<<<<< Updated upstream
-
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
         }
-
-=======
-        if (!response.ok) throw new Error('Download request failed.');
->>>>>>> Stashed changes
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -277,108 +271,37 @@ export default function TenderDetails({
             </div>
           )}
 
-{/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
-{eligibilityReport && (
-  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
-    {downloadError && (
-      <span className="text-[10px] text-danger font-semibold text-center">
-        {downloadError}
-      </span>
-    )}
-
-    <div className="flex gap-3">
-      <button
-        onClick={() => handleDownload('pdf')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'pdf'
-            ? 'Generating PDF...'
-            : 'Download Briefing (PDF)'}
-        </span>
-      </button>
-
-      <button
-        onClick={() => handleDownload('excel')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'excel'
-            ? 'Compiling Sheet...'
-            : 'Download Catalog (XLSX)'}
-        </span>
-      </button>
-    </div>
-  </div>
-)}
         </div>
 
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
-<<<<<<< Updated upstream
-{eligibilityReport && (
-  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
-    {downloadError && (
-      <span className="text-[10px] text-danger font-semibold text-center">
-        {downloadError}
-      </span>
-    )}
-
-    <div className="flex gap-3">
-      <button
-        onClick={() => handleDownload('pdf')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'pdf'
-            ? 'Generating PDF...'
-            : 'Download Briefing (PDF)'}
-        </span>
-      </button>
-
-      <button
-        onClick={() => handleDownload('excel')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'excel'
-            ? 'Compiling Sheet...'
-            : 'Download Catalog (XLSX)'}
-        </span>
-      </button>
-    </div>
-  </div>
-)}
-=======
         {eligibilityReport && (
-          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-3 shrink-0">
-            <button
-              onClick={() => handleDownload('pdf')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
-              <span>{downloadingFormat === 'pdf' ? 'Generating PDF...' : 'Download Briefing (PDF)'}</span>
-            </button>
-            
-            <button
-              onClick={() => handleDownload('excel')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
-              <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
-            </button>
+          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-3 shrink-0">
+            {downloadError && (
+              <span className="text-[10px] text-danger font-semibold text-center">
+                {downloadError}
+              </span>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleDownload('pdf')}
+                disabled={downloadingFormat !== null}
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
+                <span>{downloadingFormat === 'pdf' ? 'Generating PDF...' : 'Download Briefing (PDF)'}</span>
+              </button>
+
+              <button
+                onClick={() => handleDownload('excel')}
+                disabled={downloadingFormat !== null}
+                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
+                <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
+              </button>
+            </div>
           </div>
         )}
->>>>>>> Stashed changes
         
       </motion.div>
     </>

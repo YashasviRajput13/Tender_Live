@@ -241,14 +241,9 @@ export default function TenderList({
                           <a
                             href={t.source_url}
                             target="_blank"
-<<<<<<< Updated upstream
-rel="noreferrer noopener"
-className="flex items-center text-[10px] text-primary-600 hover:text-primary-700 font-semibold space-x-0.5"
-onClick={(e) => e.stopPropagation()}
-=======
                             rel="noreferrer"
                             className="flex items-center text-[11px] text-[#8A662D] dark:text-[#E6C89C] hover:text-[#A07840] dark:hover:text-gold-400 font-extrabold space-x-1 transition-colors whitespace-nowrap inline-flex"
->>>>>>> Stashed changes
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <span>Bid Document</span>
                             <ExternalLink className="w-3 h-3" />
