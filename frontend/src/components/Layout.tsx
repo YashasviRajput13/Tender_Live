@@ -12,6 +12,7 @@ import {
 import { Notification } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
+import Logo from './Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -56,15 +57,10 @@ export default function Layout({
       <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between z-30 shrink-0 shadow-sm transition-colors duration-300">
         
         {/* Logo (Left) */}
-        <div className="flex items-center space-x-3 select-none shrink-0">
-          <div className="w-10 h-10 bg-[#C9A84C] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-premium-glow">
-            🔮
-          </div>
-          <div>
-            <span className="font-display font-extrabold text-base tracking-tight text-slate-900 dark:text-white leading-none block">TenderLive</span>
-            <span className="block text-[10px] text-[#C9A84C] font-semibold tracking-widest uppercase mt-0.5">Enterprise AI</span>
-          </div>
+        <div className="flex items-center select-none shrink-0">
+          <Logo variant="header" className="h-10 w-auto" />
         </div>
+
 
         {/* Capsule Navigation (Center) */}
         <div className="flex items-center bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-inner relative shrink-0">

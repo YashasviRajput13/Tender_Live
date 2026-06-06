@@ -57,7 +57,7 @@ export default function HeroVideo() {
       ctx.clearRect(0, 0, width, height);
 
       // Draw connections
-      ctx.strokeStyle = 'rgba(249, 115, 22, 0.08)'; // Subtle Orange connections
+      ctx.strokeStyle = 'rgba(201, 168, 76, 0.08)'; // Subtle Gold connections
       ctx.lineWidth = 0.8;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -75,7 +75,7 @@ export default function HeroVideo() {
       }
 
       // Draw nodes
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.25)';
+      ctx.fillStyle = 'rgba(201, 168, 76, 0.25)';
       particles.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -122,11 +122,11 @@ export default function HeroVideo() {
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
       />
 
-      {/* Additional subtle orange gradient overlay */}
+      {/* Additional subtle gold gradient overlay */}
       <div
         className="absolute inset-0 z-20 pointer-events-none"
         style={{
-          background: 'linear-gradient(180deg, rgba(249,115,22,0.12) 0%, rgba(0,0,0,0.45) 100%)'
+          background: 'linear-gradient(180deg, rgba(201,168,76,0.1) 0%, rgba(0,0,0,0.45) 100%)'
         }}
       />
     </div>
