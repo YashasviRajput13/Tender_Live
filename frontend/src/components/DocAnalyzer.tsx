@@ -145,19 +145,19 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
           </div>
 
           <div className="flex items-center justify-between">
-
-<div className="space-y-1">
-  <h4 className="text-xs font-bold text-slate-900 leading-snug">
-    {activeUploadTask.status === 'failed'
-      ? 'Analysis failed. See error in logs below.'
-      : activeUploadTask.status === 'running'
-        ? 'Extracting text and qualifications...'
-        : 'Document parsed. Preparing matching...'}
-  </h4>
-  <p className="text-[10px] text-slate-500 font-medium">
-    Chaining into the Eligibility evaluator.
-  </p>
-</div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-slate-900 leading-snug">
+                {activeUploadTask.status === 'failed'
+                  ? 'Analysis failed. See error in logs below.'
+                  : activeUploadTask.status === 'running'
+                    ? 'Extracting text and qualifications...'
+                    : 'Document parsed. Preparing matching...'}
+              </h4>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Chaining into the Eligibility evaluator.
+              </p>
+            </div>
+          </div>
 
           {/* Progress loader */}
           <div className="w-full bg-slate-105 rounded-full h-1.5 overflow-hidden shadow-inner">
