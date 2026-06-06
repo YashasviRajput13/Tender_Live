@@ -44,19 +44,19 @@ export default function TenderList({
     switch (status) {
       case 'analyzed':
         return (
-          <span className="px-2.5 py-1 rounded-lg bg-primary-500/10 text-primary-600 border border-primary-500/20 text-[9px] font-bold uppercase tracking-wider animate-fade-in">
+          <span className="px-2 py-0.5 rounded-md bg-[#C9A84C]/15 text-[#8A662D] dark:text-[#E6C89C] border border-[#C9A84C]/40 text-[10px] font-black uppercase tracking-wider">
             Analyzed
           </span>
         );
       case 'processing':
         return (
-          <span className="px-2.5 py-1 rounded-lg bg-warning/10 text-warning border border-warning/20 text-[9px] font-bold uppercase tracking-wider animate-pulse">
+          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-850 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-[10px] font-extrabold uppercase tracking-wider animate-pulse">
             Processing
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-550 border border-slate-200 text-[9px] font-bold uppercase tracking-wider">
+          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-850 text-slate-850 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-[10px] font-extrabold uppercase tracking-wider">
             Discovered
           </span>
         );
@@ -68,23 +68,23 @@ export default function TenderList({
     switch (eligibility) {
       case 'eligible':
         return (
-          <div className="flex items-center space-x-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-            <span className="text-[10px] font-bold text-success">Eligible</span>
+          <div className="flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#C9A84C]/15 border border-[#C9A84C]/45 text-[#8A662D] dark:text-[#E6C89C] text-[10px] font-black uppercase tracking-wider inline-flex">
+            <CheckCircle2 className="w-3 h-3 text-[#8A662D] dark:text-[#E6C89C] shrink-0 mr-0.5" />
+            <span>Eligible</span>
           </div>
         );
       case 'partially_eligible':
         return (
-          <div className="flex items-center space-x-1.5">
-            <AlertCircle className="w-3.5 h-3.5 text-warning shrink-0" />
-            <span className="text-[10px] font-bold text-warning">Partial Match</span>
+          <div className="flex items-center space-x-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black uppercase tracking-wider inline-flex">
+            <AlertCircle className="w-3 h-3 text-slate-700 dark:text-slate-300 shrink-0 mr-0.5" />
+            <span>Partial Match</span>
           </div>
         );
       case 'not_eligible':
         return (
-          <div className="flex items-center space-x-1.5">
-            <XCircle className="w-3.5 h-3.5 text-danger shrink-0" />
-            <span className="text-[10px] font-bold text-danger">Not Eligible</span>
+          <div className="flex items-center space-x-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-black uppercase tracking-wider inline-flex">
+            <XCircle className="w-3 h-3 text-slate-700 dark:text-slate-300 shrink-0 mr-0.5" />
+            <span>Not Eligible</span>
           </div>
         );
       default:
@@ -94,68 +94,63 @@ export default function TenderList({
 
   const getScoreBar = (score?: number) => {
     if (score == null) return null;
-    const color =
-      score >= 70 ? 'bg-success' : score >= 40 ? 'bg-warning' : 'bg-danger';
-    const textColor =
-      score >= 70 ? 'text-success' : score >= 40 ? 'text-warning' : 'text-danger';
     return (
-      <div className="flex items-center space-x-2 mt-1.5">
-        <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+      <div className="flex items-center space-x-1.5 mt-1">
+        <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1 overflow-hidden">
           <div
-            className={`${color} h-1.5 rounded-full transition-all duration-700`}
+            className="bg-[#C9A84C] h-1 rounded-full transition-all duration-700"
             style={{ width: `${score}%` }}
           />
         </div>
-        <span className={`text-[10px] font-bold font-mono ${textColor} w-8 text-right shrink-0`}>
+        <span className="text-[10px] font-bold font-mono text-slate-900 dark:text-white w-6 text-right shrink-0">
           {score}
         </span>
       </div>
     );
   };
 
-  // Count analyzed tenders for summary
   const analyzedCount = tenders.filter((t) => t.status === 'analyzed').length;
   const pendingCount = tenders.filter(
     (t) => t.status === 'discovered' || t.status === 'processing'
   ).length;
 
   return (
-    <div className="p-8 space-y-6 select-none bg-white">
+    <div className="p-8 space-y-6 select-none bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-300">
 
       {/* SUMMARY STRIP */}
       {tenders.length > 0 && (
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-primary-500/10 border border-primary-500/20">
-            <TrendingUp className="w-3.5 h-3.5 text-primary-600" />
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary-600">Sorted by Eligibility Score</span>
+          <div className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-[#C9A84C]/10 border border-[#C9A84C]/25">
+            <TrendingUp className="w-3.5 h-3.5 text-[#C9A84C]" />
+            <span className="text-xs font-extrabold uppercase tracking-widest text-[#A07840] dark:text-[#C9A84C]">Sorted by Eligibility Score</span>
           </div>
-          <span className="text-[11px] text-slate-550">
-            <span className="text-primary-500 font-bold">{analyzedCount}</span> analyzed ·{' '}
-            <span className="text-warning font-bold">{pendingCount}</span> pending analysis
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-[#C9A84C] font-bold">{analyzedCount}</span> analyzed ·{' '}
+            <span className="text-slate-800 dark:text-slate-200 font-bold">{pendingCount}</span> pending analysis
           </span>
         </div>
       )}
 
       {/* FILTER PANEL */}
-      <div className="glass-panel rounded-2xl border border-slate-200 p-5 flex flex-col md:flex-row gap-4 items-center justify-between shadow-premium">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm hover:border-[#C9A84C]/25 dark:hover:border-[#C9A84C]/45 transition-colors">
         <div className="relative w-full md:w-96">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by tender ID, keyword or agency..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-primary-500 focus:outline-none text-slate-800 text-xs transition-all shadow-inner"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-slate-350 focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/15 focus:outline-none text-slate-800 dark:text-slate-100 text-sm transition-all"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="flex items-center space-x-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-primary-500 text-slate-700"
+              className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-[#C9A84C] text-slate-700 dark:text-slate-300 cursor-pointer"
             >
               <option value="ALL">All Portals</option>
               <option value="GEM">GeM Only</option>
@@ -167,7 +162,7 @@ export default function TenderList({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-primary-500 text-slate-700"
+            className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:border-[#C9A84C] text-slate-700 dark:text-slate-300 cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="discovered">Discovered</option>
@@ -178,25 +173,25 @@ export default function TenderList({
       </div>
 
       {/* TABLE DATA GRID */}
-      <div className="glass-panel rounded-2xl border border-slate-200 overflow-hidden shadow-premium">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse select-text">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[9px] font-extrabold text-slate-500 uppercase tracking-widest">
-                <th className="py-4.5 px-6 text-center w-16">#</th>
-                <th className="py-4.5 px-6">Tender Details</th>
-                <th className="py-4.5 px-6">Source & Portal</th>
-                <th className="py-4.5 px-6">Estim. Budget</th>
-                <th className="py-4.5 px-6">Deadline</th>
-                <th className="py-4.5 px-6">Eligibility</th>
-                <th className="py-4.5 px-6">Score / State</th>
-                <th className="py-4.5 px-6 text-right">Actions</th>
+              <tr className="bg-slate-100 dark:bg-slate-950/80 border-b border-slate-300 dark:border-slate-800 text-[11px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                <th className="py-3.5 px-3 text-center w-12">#</th>
+                <th className="py-3.5 px-4 w-[30%] min-w-[220px]">Tender Details</th>
+                <th className="py-3.5 px-4 w-[15%] min-w-[120px]">Source & Portal</th>
+                <th className="py-3.5 px-4 w-[11%] min-w-[95px]">Estim. Budget</th>
+                <th className="py-3.5 px-4 w-[11%] min-w-[95px]">Deadline</th>
+                <th className="py-3.5 px-4 w-[11%] min-w-[110px]">Eligibility</th>
+                <th className="py-3.5 px-4 w-[11%] min-w-[120px]">Score / State</th>
+                <th className="py-3.5 px-4 w-[11%] min-w-[130px] xl:min-w-[280px] text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/60 text-xs text-slate-700 bg-white">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-[13px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900">
               {filteredTenders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-550 font-medium">
+                  <td colSpan={8} className="py-16 text-center text-slate-400 dark:text-slate-500 font-medium">
                     No matching tenders found in local index.
                   </td>
                 </tr>
@@ -204,94 +199,99 @@ export default function TenderList({
                 filteredTenders.map((t, idx) => (
                   <tr
                     key={t.id}
-                    className="hover:bg-slate-50/60 transition-all group"
+                    className="hover:bg-[#C9A84C]/[0.025] dark:hover:bg-[#C9A84C]/[0.05] transition-all group border-b border-slate-100 dark:border-slate-800"
                   >
                     {/* Rank number */}
-                    <td className="py-4 px-6 text-center">
+                    <td className="py-3 px-3 text-center">
                       {t.opportunity_score != null ? (
-                        <span className={`text-xs font-mono font-black ${
-                          idx === 0 ? 'text-warning' :
-                          idx === 1 ? 'text-slate-500' :
-                          idx === 2 ? 'text-orange-650' :
-                          'text-slate-400'
+                        <span className={`text-[12px] font-mono font-black ${
+                          idx === 0 ? 'text-[#C9A84C]' :
+                          idx === 1 ? 'text-slate-700 dark:text-slate-350' :
+                          idx === 2 ? 'text-slate-550 dark:text-slate-400' :
+                          'text-slate-355 dark:text-slate-650'
                         }`}>
                           #{idx + 1}
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-xs">—</span>
+                        <span className="text-slate-300 dark:text-slate-650 text-[12px]">—</span>
                       )}
                     </td>
 
                     {/* Tender details */}
                     <td
                       onClick={() => onTenderSelect(t)}
-                      className="py-4 px-6 max-w-sm cursor-pointer space-y-1"
+                      className="py-3.5 px-4 w-[30%] min-w-[220px] cursor-pointer space-y-1"
                     >
-                      <span className="font-mono text-[9px] text-primary-600 font-bold block">
+                      <span className="font-mono text-[11px] text-[#8A662D] dark:text-[#E6C89C] font-extrabold block">
                         {t.tender_id}
                       </span>
-                      <h3 className="font-bold text-slate-900 group-hover:text-primary-500 truncate transition-all leading-snug">
+                      <h3 className="font-black text-[13px] text-slate-900 dark:text-white group-hover:text-[#C9A84C] truncate transition-colors leading-snug">
                         {t.title}
                       </h3>
-                      <p className="text-[10px] text-slate-500 truncate font-medium">
+                      <p className="text-[12px] text-slate-750 dark:text-slate-300 truncate font-semibold">
                         {t.department || 'Procurement Agency'}
                       </p>
                     </td>
 
                     {/* Source */}
-                    <td className="py-4 px-6">
+                    <td className="py-3.5 px-4 w-[15%] min-w-[120px]">
                       <div className="flex flex-col space-y-1">
-                        <span className="font-bold text-slate-800">{t.source_name}</span>
+                        <span className="font-black text-[13px] text-slate-900 dark:text-white">{t.source_name}</span>
                         {t.source_url && (
                           <a
                             href={t.source_url}
                             target="_blank"
+<<<<<<< Updated upstream
 rel="noreferrer noopener"
 className="flex items-center text-[10px] text-primary-600 hover:text-primary-700 font-semibold space-x-0.5"
 onClick={(e) => e.stopPropagation()}
+=======
+                            rel="noreferrer"
+                            className="flex items-center text-[11px] text-[#8A662D] dark:text-[#E6C89C] hover:text-[#A07840] dark:hover:text-gold-400 font-extrabold space-x-1 transition-colors whitespace-nowrap inline-flex"
+>>>>>>> Stashed changes
                           >
                             <span>Bid Document</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
+                            <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
                       </div>
                     </td>
 
                     {/* Budget */}
-                    <td className="py-4 px-6 font-bold text-slate-900 font-mono text-[11px]">
+                    <td className="py-3.5 px-4 w-[11%] min-w-[95px] font-extrabold text-slate-900 dark:text-white font-mono text-[12px] whitespace-nowrap">
                       {t.budget
                         ? `₹ ${t.budget >= 10000000
                             ? `${(t.budget / 10000000).toFixed(2)} Cr`
                             : `${(t.budget / 100000).toFixed(2)} L`}`
-                        : <span className="text-slate-400 italic font-normal">Open Value</span>
+                        : <span className="text-slate-700 dark:text-slate-300 italic font-medium">Open Value</span>
                       }
                     </td>
 
                     {/* Deadline */}
-                    <td className="py-4 px-6 font-mono text-slate-500 text-[10px]">
+                    <td className="py-3.5 px-4 w-[11%] min-w-[95px] font-mono font-bold text-slate-800 dark:text-slate-200 text-[12px] whitespace-nowrap">
                       {t.deadline
                         ? new Date(t.deadline).toLocaleDateString(undefined, {
                             day: 'numeric', month: 'short', year: 'numeric',
                           })
-                        : <span className="text-slate-400">Not listed</span>
+                        : <span className="text-slate-600 dark:text-slate-400 italic font-medium">Not listed</span>
                       }
                     </td>
 
                     {/* Eligibility verdict */}
-                    <td className="py-4 px-6">
+                    <td className="py-3.5 px-4 w-[11%] min-w-[110px] whitespace-nowrap">
                       {t.eligibility
                         ? getEligibilityBadge(t.eligibility, t.opportunity_score)
                         : (
-                          <div className="flex items-center space-x-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span className="text-[10px] text-slate-500 font-medium">Pending</span>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3.5 h-3.5 text-slate-550 dark:text-slate-400 shrink-0" />
+                            <span className="text-[12px] text-slate-750 dark:text-slate-300 font-bold">Pending</span>
                           </div>
                         )
                       }
                     </td>
 
                     {/* Score bar + status */}
-                    <td className="py-4 px-6 min-w-[130px]">
+                    <td className="py-3.5 px-4 w-[11%] min-w-[120px] whitespace-nowrap">
                       {t.opportunity_score != null
                         ? getScoreBar(t.opportunity_score)
                         : getStatusBadge(t.status)
@@ -299,39 +299,40 @@ onClick={(e) => e.stopPropagation()}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-4 px-6 text-right space-x-2 shrink-0 select-none">
-                      <button
-                        onClick={() => onTenderSelect(t)}
-                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[10px] font-bold text-slate-700 transition-all inline-flex items-center space-x-1"
-                      >
-                        <Info className="w-3 h-3" />
-                        <span>Inspect</span>
-                      </button>
-
-                      {/* Show manual analysis only for discovered tenders that haven't been auto-analyzed */}
-                      {t.status === 'discovered' && analyzingTenderId !== t.id && (
+                    <td className="py-3 px-4 w-[11%] min-w-[130px] xl:min-w-[280px] text-right select-none">
+                      <div className="flex flex-col xl:flex-row xl:justify-end gap-1.5 items-stretch xl:items-center">
                         <button
-                          onClick={() => onRunAnalysis(t.id)}
-                          className="py-1.5 px-3 rounded-lg bg-slate-105 hover:bg-primary-500/10 border border-slate-200 hover:border-primary-500/20 text-[10px] font-bold text-slate-600 hover:text-primary-600 transition-all inline-flex items-center space-x-1"
+                          onClick={() => onTenderSelect(t)}
+                          className="py-1.5 px-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-[#C9A84C] hover:text-white hover:border-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-black dark:hover:border-[#C9A84C] font-extrabold text-[12px] transition-all inline-flex items-center justify-center space-x-1.5 shadow-sm whitespace-nowrap w-full xl:w-28 h-8"
                         >
-                          <Cpu className="w-3 h-3" />
-                          <span>Re-Analyse</span>
+                          <Info className="w-3.5 h-3.5 shrink-0" />
+                          <span>Inspect</span>
                         </button>
-                      )}
-                      {analyzingTenderId === t.id && (
-                        <span className="py-1.5 px-3 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-bold text-warning inline-flex items-center space-x-1">
-                          <Cpu className="w-3 h-3 animate-spin" />
-                          <span>Analysing...</span>
-                        </span>
-                      )}
+
+                        {t.status === 'discovered' && analyzingTenderId !== t.id && (
+                          <button
+                            onClick={() => onRunAnalysis(t.id)}
+                            className="py-1.5 px-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-[#C9A84C] hover:text-white hover:border-[#C9A84C] dark:hover:bg-[#C9A84C] dark:hover:text-black dark:hover:border-[#C9A84C] font-extrabold text-[12px] transition-all inline-flex items-center justify-center space-x-1.5 shadow-sm whitespace-nowrap w-full xl:w-28 h-8"
+                          >
+                            <Cpu className="w-3.5 h-3.5 shrink-0" />
+                            <span>Re-Analyse</span>
+                          </button>
+                        )}
+                        {analyzingTenderId === t.id && (
+                          <span className="py-1.5 px-3 rounded-lg bg-[#C9A84C]/10 border border-[#C9A84C]/25 text-[11px] font-bold text-[#C9A84C] inline-flex items-center justify-center space-x-1.5 whitespace-nowrap w-full xl:w-28 h-8">
+                            <Cpu className="w-3.5 h-3.5 animate-spin shrink-0" />
+                            <span>Analysing...</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
-        </div>
       </div>
     </div>
+  </div>
   );
 }

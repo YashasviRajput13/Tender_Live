@@ -115,18 +115,18 @@ export default function HeroVideo() {
       ) : (
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-40" />
       )}
-      
+
       {/* Dark overlay: rgba(0,0,0,0.45) */}
-      <div 
-        className="absolute inset-0 z-10 pointer-events-none" 
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
       />
-      
+
       {/* Additional subtle orange gradient overlay */}
-      <div 
+      <div
         className="absolute inset-0 z-20 pointer-events-none"
-        style={{ 
-          background: 'linear-gradient(180deg, rgba(249,115,22,0.12) 0%, rgba(0,0,0,0.45) 100%)' 
+        style={{
+          background: 'linear-gradient(180deg, rgba(249,115,22,0.12) 0%, rgba(0,0,0,0.45) 100%)'
         }}
       />
     </div>

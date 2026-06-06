@@ -65,25 +65,25 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
   }, [activeUploadTask?.status]);
 
   return (
-    <div className="p-8 max-w-3xl space-y-8 font-sans select-none bg-white">
+    <div className="p-8 max-w-3xl space-y-8 font-sans select-none bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-800 dark:text-slate-200 transition-colors duration-300">
       
       <div className="space-y-2">
-        <h2 className="text-sm font-display font-bold text-slate-900 tracking-wide">Document Intelligence</h2>
-        <p className="text-xs text-slate-500">
+        <h2 className="text-base font-display font-bold text-slate-900 dark:text-white tracking-wide">Document Intelligence</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
           Upload active government tender PDFs to execute zero-shot layout structure mapping, text stream extraction, and alignment checks.
         </p>
       </div>
 
       {/* UPLOAD FORM PANEL */}
       {!activeUploadTask && (
-        <form onSubmit={handleUploadSubmit} className="glass-panel rounded-2xl border border-slate-200 p-10 text-center space-y-6 shadow-premium bg-white/70">
-          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto text-primary-500 shadow-inner">
-            <Upload className="w-5 h-5 animate-pulse" />
+        <form onSubmit={handleUploadSubmit} className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-[#C9A84C]/30 hover:border-[#C9A84C]/60 dark:hover:border-[#C9A84C]/50 p-10 text-center space-y-6 shadow-sm transition-all">
+          <div className="w-16 h-16 rounded-2xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center mx-auto text-[#C9A84C] shadow-sm">
+            <Upload className="w-6 h-6 animate-pulse" />
           </div>
 
           <div className="space-y-1.5 max-w-xs mx-auto">
-            <h3 className="text-xs font-bold text-slate-900">Drag and drop tender PDF document</h3>
-            <p className="text-[10px] text-slate-500 font-mono leading-relaxed">// Supports standard bid layouts (max 40k characters)</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Drag and drop tender PDF document</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-mono leading-relaxed">// Supports standard bid layouts (max 40k characters)</p>
           </div>
 
           <div className="relative max-w-xs mx-auto">
@@ -97,21 +97,25 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
             />
             <button
               type="button"
-              className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition shadow-sm"
+              className={`w-full py-2.5 px-4 rounded-xl border text-sm font-bold transition-all shadow-sm ${
+                file 
+                  ? 'border-[#C9A84C]/30 bg-[#C9A84C]/5 text-[#A07840] dark:text-[#C9A84C]' 
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-350'
+              }`}
             >
-              {file ? file.name : 'Select PDF Document'}
+              {file ? `📄 ${file.name}` : 'Select PDF Document'}
             </button>
           </div>
 
           {errorMsg && (
-            <span className="block text-xs text-danger font-bold">{errorMsg}</span>
+            <span className="block text-sm text-danger font-bold">{errorMsg}</span>
           )}
 
           {file && (
             <button
               type="submit"
               disabled={uploading}
-              className="py-2.5 px-8 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs shadow-premium-glow transition-all inline-flex items-center space-x-2"
+              className="py-3 px-10 rounded-xl bg-[#C9A84C] hover:bg-[#A07840] text-white font-bold text-sm shadow-premium-glow transition-all inline-flex items-center space-x-2 hover:scale-[1.02]"
             >
               {uploading ? (
                 <>
@@ -131,21 +135,24 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
 
       {/* ACTIVE ANALYZER STREAM PANEL */}
       {activeUploadTask && (
-        <div className="glass-panel rounded-2xl border border-slate-200 p-6 space-y-6 shadow-premium bg-white/70">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-            <div className="flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-primary-500" />
-              <h3 className="text-xs font-mono font-extrabold text-slate-900 uppercase tracking-widest leading-none">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-[#C9A84C]/20 p-6 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-[#C9A84C]" />
+              </div>
+              <h3 className="text-sm font-mono font-extrabold text-slate-900 dark:text-white uppercase tracking-widest leading-none">
                 Document Parsing Queue
               </h3>
             </div>
-            <span className="text-[9px] font-mono text-slate-500">
+            <span className="text-xs font-mono text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-950 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
               ID: {activeUploadTask.id.slice(0, 8)}...
             </span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
+<<<<<<< Updated upstream
               <h4 className="text-xs font-bold text-slate-900 leading-snug">
                 {activeUploadTask.status === 'failed'
                   ? 'Analysis failed. See error in logs below.'
@@ -157,28 +164,36 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
                 Chaining into the Eligibility evaluator.
               </p>
             </div>
+=======
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                {activeUploadTask.status === 'running' ? 'Extracting text and qualifications...' : 'Document parsed. Preparing matching...'}
+              </h4>
+              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Chaining into the Eligibility evaluator.</p>
+            </div>
+            <span className="text-xl font-bold text-[#C9A84C] font-mono">{activeUploadTask.progress}%</span>
+>>>>>>> Stashed changes
           </div>
 
           {/* Progress loader */}
-          <div className="w-full bg-slate-105 rounded-full h-1.5 overflow-hidden shadow-inner">
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
             <div 
-              className="bg-primary-500 h-1.5 rounded-full transition-all duration-300 shadow-premium-glow"
+              className="bg-[#C9A84C] h-2 rounded-full transition-all duration-300 shadow-premium-glow"
               style={{ width: `${activeUploadTask.progress}%` }}
             ></div>
           </div>
 
           {/* Activity terminal log blocks */}
           <div className="space-y-2.5">
-            <span className="flex items-center space-x-1.5 text-[9px] font-mono text-slate-500 uppercase tracking-widest select-none">
-              <Terminal className="w-3 h-3 text-slate-400" />
+            <span className="flex items-center space-x-1.5 text-xs font-mono text-[#C9A84C] uppercase tracking-widest select-none">
+              <Terminal className="w-3 h-3" />
               <span>Layout Parser logs stream</span>
             </span>
             
-            <div className="bg-slate-900 border border-slate-805 rounded-xl p-4 font-mono text-[9px] text-secondary-400 leading-relaxed max-h-48 overflow-y-auto select-text shadow-inner">
+            <div className="bg-slate-900 dark:bg-slate-950 border border-slate-700 dark:border-slate-800 rounded-xl p-4 font-mono text-xs text-emerald-400 leading-relaxed max-h-48 overflow-y-auto select-text shadow-inner">
               {activeUploadTask.log_messages?.map((log, idx) => (
                 <div key={idx} className="flex space-x-2">
                   <span className="text-slate-500">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                  <span className={log.level === 'ERROR' ? 'text-danger animate-pulse' : 'text-slate-250'}>
+                  <span className={log.level === 'ERROR' ? 'text-danger animate-pulse' : 'text-slate-300'}>
                     {log.message}
                   </span>
                 </div>
