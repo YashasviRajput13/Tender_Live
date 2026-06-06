@@ -4,29 +4,54 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Obsidian palette for premium dashboarding
+        background: '#FFFFFF',
+        surface: '#F8FAFC',
+        card: '#FFFFFF',
+        primary: {
+          500: '#F97316', // Orange
+          600: '#EA580C', // Orange Hover
+          400: '#FDBA74', // Light Orange
+        },
+        secondary: {
+          500: '#06B6D4', // Cyan
+          400: '#22d3ee',
+        },
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
         slate: {
-          900: '#0B0F19',
-          800: '#111827',
-          700: '#1F2937',
-          650: '#2A3441',
-          600: '#374151',
-          500: '#6B7280',
-          400: '#9CA3AF',
-          300: '#D1D5DB',
-          200: '#E5E7EB',
-          100: '#F3F4F6',
-          50: '#F9FAFB'
+          900: '#111827', // Primary Text
+          800: '#1F2937',
+          750: '#E5E7EB', // Border Color
+          700: '#4B5563', // Secondary Text
+          650: '#6B7280',
+          600: '#9CA3AF',
+          500: '#D1D5DB',
+          400: '#E5E7EB', // Border
+          300: '#F3F4F6',
+          200: '#F8FAFC', // Secondary Background
+          100: '#FFFFFF', // Primary Background
+          50: '#FFFFFF'
         },
         brand: {
-          500: '#10B981', // Emerald
-          600: '#059669',
-          400: '#34D399',
+          500: '#F97316', // Compatibility
+          600: '#EA580C',
+          400: '#FDBA74',
         }
+      },
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        display: ['Manrope', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      boxShadow: {
+        'premium': '0 8px 30px rgba(0, 0, 0, 0.05)',
+        'premium-glow': '0 0 30px rgba(249, 115, 22, 0.15)',
+        'cyan-glow': '0 0 30px rgba(6, 182, 212, 0.15)',
       }
     },
   },

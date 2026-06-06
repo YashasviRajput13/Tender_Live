@@ -5,3 +5,19 @@ __pycache__/
 **/__pycache__/
 node_modules/
 .DS_Store
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Build outputs
+dist/
+build/
+frontend/dist/
+
+# Local databases
+*.db
+backend/dev.db
+dev.db
