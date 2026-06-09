@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
-
+from workers.celery_app import celery_instance
 # Import base structures
 import models
 from database import engine, Base, get_db
@@ -18,6 +18,8 @@ from routers import tenders as tenders_router
 from routers import tasks as tasks_router
 from routers import documents as documents_router
 from routers import reports as reports_router
+
+
 
 # Configure Logging
 logging.basicConfig(
@@ -57,12 +59,71 @@ def list_notifications(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """
-    Fetch all active in-app alerts for the current logged-in user.
+    Fetch all active in-app alerts for the current logged-in user's company,
+    sorted by read status, then critical priority, then date.
     """
+    from sqlalchemy import case
+    company = db.query(models.Company).filter(models.Company.user_id == current_user.id).first()
+    if not company:
+        return []
+
+    priority_order = case(
+        (models.Notification.priority == 'CRITICAL', 0),
+        (models.Notification.priority == 'HIGH', 1),
+        (models.Notification.priority == 'MEDIUM', 2),
+        else_=3
+    )
+
     notifs = db.query(models.Notification).filter(
-        models.Notification.user_id == current_user.id
-    ).order_by(models.Notification.created_at.desc()).all()
+        models.Notification.company_id == company.id
+    ).order_by(
+        models.Notification.is_read.asc(),
+        priority_order.asc(),
+        models.Notification.created_at.desc()
+    ).all()
     return notifs
+
+
+@app.patch("/api/notifications/{id}/read", response_model=schemas.NotificationOut)
+def mark_notification_read(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Mark a single notification as read by ID.
+    """
+    company = db.query(models.Company).filter(models.Company.user_id == current_user.id).first()
+    if not company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Company profile not found."
+        )
+
+    notif = db.query(models.Notification).filter(
+        models.Notification.id == id,
+        models.Notification.company_id == company.id
+    ).first()
+
+    if not notif:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification not found."
+        )
+
+    notif.is_read = True
+
+    # Audit logging: notification_read
+    logger.info(f"[notification_read] Notification ID: {id} marked as read for Company ID: {company.id}")
+    audit = models.AuditLog(
+        user_id=current_user.id,
+        action="notification_read",
+        details={"notification_id": id, "tender_id": notif.tender_id, "company_id": company.id}
+    )
+    db.add(audit)
+    db.commit()
+    db.refresh(notif)
+    return notif
 
 
 @app.post("/api/notifications/read-all", status_code=status.HTTP_200_OK)
@@ -73,8 +134,12 @@ def mark_all_notifications_read(
     """
     Mark all unread notifications as read.
     """
+    company = db.query(models.Company).filter(models.Company.user_id == current_user.id).first()
+    if not company:
+        return {"message": "No company profile found."}
+
     db.query(models.Notification).filter(
-        models.Notification.user_id == current_user.id,
+        models.Notification.company_id == company.id,
         models.Notification.is_read == False
     ).update({"is_read": True})
     db.commit()
@@ -224,8 +289,64 @@ def startup_db_init():
     """
     Prepare Database Schema and seed active configuration records.
     """
-    logger.info("Initializing PostgreSQL database tables...")
-    Base.metadata.create_all(bind=engine)
+    from sqlalchemy import inspect, text
+    logger.info("Checking for database migrations...")
+    
+    # Run custom migrations to preserve notifications table data if old schema is found
+    try:
+        inspector = inspect(engine)
+        if "notifications" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("notifications")]
+            if "company_id" not in columns:
+                logger.info("Old 'notifications' table schema detected. Initiating migration process...")
+                
+                # Rename the old table and drop index to avoid conflicts on recreate
+                with engine.begin() as conn:
+                    try:
+                        conn.execute(text("DROP INDEX IF EXISTS ix_notifications_id;"))
+                    except Exception:
+                        pass
+                    conn.execute(text("ALTER TABLE notifications RENAME TO notifications_old;"))
+                logger.info("Renamed old notifications table to notifications_old.")
+                
+                # Recreate tables (creating the new notifications schema)
+                Base.metadata.create_all(bind=engine)
+                
+                # Copy and map existing records to the new notifications table
+                with engine.begin() as conn:
+                    mapping_sql = """
+                    INSERT INTO notifications (id, company_id, tender_id, type, priority, title, message, notification_metadata, is_read, created_at)
+                    SELECT 
+                        o.id, 
+                        COALESCE(
+                            (SELECT c.id FROM companies c WHERE c.user_id = o.user_id LIMIT 1),
+                            (SELECT id FROM companies LIMIT 1),
+                            1
+                        ) as company_id, 
+                        o.tender_id, 
+                        'MEDIUM_MATCH' as type,
+                        'LOW' as priority,
+                        'Tender Alert' as title, 
+                        o.message, 
+                        '{}' as notification_metadata, 
+                        o.is_read, 
+                        o.created_at 
+                    FROM notifications_old o;
+                    """
+                    conn.execute(text(mapping_sql))
+                    conn.execute(text("DROP TABLE notifications_old;"))
+                logger.info("Successfully migrated notifications data and dropped temporary old table.")
+            else:
+                logger.info("Notifications table schema is up-to-date.")
+                Base.metadata.create_all(bind=engine)
+        else:
+            logger.info("No existing notifications table. Creating new schema...")
+            Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.error(f"Migration / Database init failed: {str(e)}")
+        # Attempt fallback creation to avoid application crash
+        Base.metadata.create_all(bind=engine)
+
     logger.info("Database tables verified.")
 
     db = SessionLocal_init()

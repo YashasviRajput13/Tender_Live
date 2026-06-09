@@ -75,15 +75,23 @@ class EligibilityAgent:
             return json.loads(response_text)
         except Exception as e:
             logger.error(f"Failed during Eligibility agent execution: {str(e)}")
-            # Fail-safe structure in case AI call defaults
+            # Deterministic fallback based on sector overlap
+            from services.scoring_agent import ScoringAgent
+            scorer = ScoringAgent()
+            company_sectors = scorer._get_company_sectors(company_profile)
+            tender_text = f"{tender_details.get('title', '')} {tender_details.get('department', '')}"
+            tender_sectors = scorer._get_sectors_from_text(tender_text)
+            overlap = company_sectors & tender_sectors
+            
+            eligibility = "eligible" if len(overlap) >= 2 else ("partially_eligible" if overlap else "not_eligible")
             return {
-                "eligibility": "partially_eligible",
-                "confidence_score": 0.5,
-                "financial_match": {"status": "conditional", "details": "Analysis default fallback: system error"},
-                "technical_match": {"status": "conditional", "details": "Analysis default fallback: system error"},
-                "experience_match": {"status": "conditional", "details": "Analysis default fallback: system error"},
-                "msme_advantage": {"applicable": False, "details": "System fallback"},
-                "location_match": {"status": "pass", "details": "System fallback"},
-                "overall_rationale": f"System encountered error when processing AI agents. Rationale: {str(e)}"
+                "eligibility": eligibility,
+                "confidence_score": 0.8 if overlap else 0.2,
+                "financial_match": {"status": "conditional", "details": "AI unavailable — financial check skipped"},
+                "technical_match": {"status": "pass" if overlap else "fail", "details": f"Sector overlap: {overlap}"},
+                "experience_match": {"status": "conditional", "details": "AI unavailable"},
+                "msme_advantage": {"applicable": bool(company_profile.get("msme_status")), "details": "MSME status from profile"},
+                "location_match": {"status": "pass", "details": "AI unavailable — defaulting to pass"},
+                "overall_rationale": f"AI unavailable. Deterministic fallback: sector overlap = {overlap}"
             }
 definition_instance = EligibilityAgent()

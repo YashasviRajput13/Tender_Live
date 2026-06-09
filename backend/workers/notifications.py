@@ -1,42 +1,40 @@
 import logging
-from datetime import datetime
 from celery import shared_task
 from database import SessionLocal
-import models
-from sse import sse_manager
-import asyncio
+from notifications.manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
 @shared_task(name="workers.notifications.send_notification_task")
-def send_notification_task(user_id: int, notification_id: int):
+
+def send_notification_task(
+    event_type: str,
+    company_data: dict,
+    tender_data: dict,
+    eligibility_result: dict,
+    score_result: int
+):
+    
+    logger.info("=" * 80)
+    logger.info(f"NOTIFICATION TASK RECEIVED: {event_type}")
+    logger.info("=" * 80)
     """
-    Worker task to simulate email dispatching and notify users.
+    Asynchronous task to run rules and dispatch notifications.
     """
+    logger.info(f"Notification worker task received for type: {event_type}")
     db = SessionLocal()
-    notif = db.query(models.Notification).filter(models.Notification.id == notification_id).first()
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    
-    if not notif or not user:
-        logger.error("Missing notification or user target in dispatch.")
-        db.close()
-        return False
-        
-    logger.info(f"Notification task triggered for User: {user.email}")
-    
     try:
-        # Simulate Email Dispatch in logs (satisfying real logging streams)
-        logger.info(f"SIMULATED EMAIL DISPATCH OUTBOX:")
-        logger.info(f"  TO: {user.email}")
-        logger.info(f"  SUBJECT: TenderAI Notification Alert - {datetime.utcnow().strftime('%Y-%m-%d')}")
-        logger.info(f"  BODY: Hello {user.full_name or 'User'},\n\nWe have updates for you:\n{notif.message}\n\nAccess your TenderAI Dashboard to review detailed AI reports.\n\nBest regards,\nTenderAI Agent Service")
-        
-        # Mark notification channel updated
-        notif.channel = "email"
-        db.commit()
-        db.close()
-        return True
+        success = NotificationManager.send_notification_manager(
+            db=db,
+            event_type=event_type,
+            company_data=company_data,
+            tender_data=tender_data,
+            eligibility_result=eligibility_result,
+            score_result=score_result
+        )
+        return success
     except Exception as e:
-        logger.error(f"Failed in notification dispatch task: {str(e)}")
-        db.close()
+        logger.exception(f"Exception during notification delivery: {str(e)}")
         return False
+    finally:
+        db.close()

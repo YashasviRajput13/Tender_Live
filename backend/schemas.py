@@ -163,11 +163,22 @@ class AgentTaskOut(BaseModel):
 # --- NOTIFICATIONS & AUDIT ---
 class NotificationOut(BaseModel):
     id: int
+    type: str
+    priority: str
+    title: str
     message: str
     is_read: bool
-    channel: str
     created_at: datetime
     tender_id: Optional[int] = None
+    company_id: int
+    notification_metadata: Optional[Dict[str, Any]] = None
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, obj, *args, **kwargs):
+        instance = super().model_validate(obj, *args, **kwargs)
+        if hasattr(obj, 'notification_metadata'):
+            instance.notification_metadata = obj.notification_metadata
+        return instance

@@ -546,6 +546,16 @@ export default function App() {
       console.error(e);
     }
   };
+
+  const handleMarkNotificationRead = async (id: number) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.patch(`${API_BASE_URL}/api/notifications/${id}/read`, {}, config);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
   // 9. RENDER AUTH PANEL IF LOGGED OUT
   if (!token) {
     return (
@@ -985,6 +995,7 @@ export default function App() {
       notifications={notifications}
       onLogout={handleLogout}
       onMarkNotificationsRead={handleMarkNotificationsRead}
+      onMarkNotificationRead={handleMarkNotificationRead}
     >
       {activeTab === 'dashboard' && (
         <Dashboard

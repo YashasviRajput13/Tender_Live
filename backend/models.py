@@ -15,7 +15,6 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     companies = relationship("Company", back_populates="user", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
 
 
@@ -39,6 +38,7 @@ class Company(Base):
 
     user = relationship("User", back_populates="companies")
     eligibility_reports = relationship("EligibilityReport", back_populates="company", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="company", cascade="all, delete-orphan")
 
 
 class TenderSource(Base):
@@ -128,14 +128,17 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
     tender_id = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=True)
+    type = Column(String, nullable=False)  # HIGH_MATCH, MEDIUM_MATCH, RISK_ALERT, DEADLINE_ALERT
+    priority = Column(String, default="MEDIUM", nullable=False)  # LOW, MEDIUM, HIGH, CRITICAL
+    title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
+    notification_metadata = Column(JSON, default=dict, nullable=True)
     is_read = Column(Boolean, default=False)
-    channel = Column(String, default="in_app")  # in_app, email
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="notifications")
+    company = relationship("Company", back_populates="notifications")
     tender = relationship("Tender", back_populates="notifications")
 
 

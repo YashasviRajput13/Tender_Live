@@ -140,6 +140,12 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
         
         scoring_agent = ScoringAgent()
         score_res = scoring_agent.calculate(company_data, tender_data, eligibility_res)
+        logger.info(
+            f"[SCORE_RESULT] Tender: {tender.tender_id} | "
+            f"Company: {company.name} | "
+            f"Score: {score_res}/100 | "
+            f"Eligibility: {eligibility_res.get('eligibility')}"
+        )
         
         log_messages.append({"timestamp": str(datetime.utcnow()), "level": "INFO", "message": f"Opportunity Score calculated: {score_res}/100."})
         task.log_messages = log_messages
@@ -211,27 +217,45 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
             "risks": report.risk_analysis.get("risks", [])
         }))
 
-        # Create In-app Notification record
-        users = db.query(models.User).all()
-        for u in users:
-            notif = models.Notification(
-                user_id=u.id,
-                tender_id=tender.id,
-                message=f"AI Agent Analysis completed for Tender '{tender.title}'. Suitability Score: {score_res}/100. Eligibility: {report.eligibility.upper()}.",
-                is_read=False,
-                channel="in_app"
-            )
-            db.add(notif)
-            db.flush()
+        # 5. RUN RULES ENGINE AND QUEUE ASYNCHRONOUS NOTIFICATIONS
+        from workers.notifications import send_notification_task
+        
+        triggered_events = []
+        
+        # High Match: score >= 80 and eligibility == "eligible"
+        if score_res >= 80 and eligibility_res.get("eligibility") == "eligible":
+            triggered_events.append("HIGH_MATCH")
+        # Medium Match: 60 <= score < 80
+        elif 60 <= score_res < 80:
+            triggered_events.append("MEDIUM_MATCH")
             
-            # Publish notification update to Redis general channel
-            run_async(sse_manager.publish("dashboard_events", "notification_added", {
-                "id": notif.id,
-                "user_id": u.id,
-                "message": notif.message,
-                "created_at": notif.created_at.isoformat()
-            }))
+        # Risk Alert: eligibility == "not_eligible" or high_risk_count > 0
+        high_risk_count = 0
+        for match_field in ["financial_match", "technical_match", "experience_match", "location_match"]:
+            match_val = eligibility_res.get(match_field) or {}
+            if isinstance(match_val, dict) and match_val.get("status") == "fail":
+                high_risk_count += 1
+        
+        if eligibility_res.get("eligibility") == "not_eligible" or high_risk_count > 0:
+            triggered_events.append("RISK_ALERT")
             
+        # Deadline Alert: deadline <= 7 days
+        if tender.deadline:
+            days_remaining = (tender.deadline.replace(tzinfo=None) - datetime.utcnow().replace(tzinfo=None)).days
+            if days_remaining <= 7:
+                triggered_events.append("DEADLINE_ALERT")
+                
+        # Queue notification tasks asynchronously
+        for event_type in triggered_events:
+            logger.info(f"Queueing notification: {event_type} for Tender ID: {tender.id}")
+            try:
+                result = send_notification_task.delay(
+                    event_type, company_data, tender_data, eligibility_res, score_res
+                )
+                logger.info(f"Task queued successfully. Task ID: {result.id}")
+            except Exception as e:
+                logger.error(f"FAILED to queue notification task for {event_type}: {str(e)}")
+                
         db.commit()
         db.close()
         return True

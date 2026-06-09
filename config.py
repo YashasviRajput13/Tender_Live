@@ -14,9 +14,9 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    GROK_API_KEY: str = ""
-    GROK_BASE_URL: str = "https://api.xai.com/v1"
-    GROK_MODEL: str = "grok-beta"
+    GROQ_API_KEY: str = ""
+    GROQ_BASE_URL: str = "https://api.xai.com/v1"
+    GROQ_MODEL: str = "GROQ-beta"
 
     UPLOAD_DIR: str = "/app/uploads"
 
