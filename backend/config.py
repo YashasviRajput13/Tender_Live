@@ -25,11 +25,19 @@ class Settings(BaseSettings):
     
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    GROK_API_KEY: str = ""
-    GROK_BASE_URL: str = "https://api.xai.com/v1"
-    GROK_MODEL: str = "grok-beta"
+    GROQ_API_KEY: str = ""
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
     
     UPLOAD_DIR: str = "/app/uploads"
+
+    # SMTP configuration
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "noreply@tenderai.com"
+    SMTP_USE_TLS: bool = True
 
     model_config = SettingsConfigDict(
         env_file=str(env_file_path),

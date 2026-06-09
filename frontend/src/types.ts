@@ -129,9 +129,19 @@ export interface AgentTask {
 
 export interface Notification {
   id: number;
+  type: string;
+  priority: string; // 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  title: string;
   message: string;
   is_read: boolean;
-  channel: string;
   created_at: string;
   tender_id?: number;
+  company_id: number;
+  metadata?: {
+    why_this_tender_matches?: string;
+    recommended_action?: string;
+    risk_summary?: string;
+    trigger_reason?: string;
+    evidence?: string[];
+  };
 }

@@ -1,7 +1,8 @@
 import os
 import sys
 from celery import Celery
-
+from dotenv import load_dotenv
+load_dotenv() 
 # Add current workspace directory to Python path to ensure module imports resolve correctly inside docker containers
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
