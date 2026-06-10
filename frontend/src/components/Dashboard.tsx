@@ -6,12 +6,26 @@ import {
   Zap,
   ChevronRight,
   TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
   PieChart as PieIcon,
   BarChart3
 } from 'lucide-react';
 import { Tender, AgentTask } from '../types';
 import LiveActivity from './LiveActivity';
 import ActiveTasks from './ActiveTasks';
+import { motion } from 'framer-motion';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 interface DashboardProps {
   tenders: Tender[];
@@ -26,6 +40,67 @@ interface DashboardProps {
   onForceSync: () => void;
   errorMessage?: string | null;
 }
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-3 shadow-xl transition-all duration-200">
+        <span className="block text-[10px] font-mono uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
+          {label}
+        </span>
+        <div className="flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
+          <span className="text-sm font-extrabold text-slate-900 dark:text-white">
+            {payload[0].value}% suitability
+          </span>
+        </div>
+        <span className="block text-[9px] font-medium text-emerald-500 dark:text-emerald-400 mt-1">
+          ✓ Optimal Matching Rate
+        </span>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomDot = (props: any) => {
+  const { cx, cy, index, payload } = props;
+  const isHighest = payload.score === 95;
+  const isLowest = payload.score === 65;
+
+  if (isHighest || isLowest) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={8} fill="#C9A84C" fillOpacity={0.2} />
+        <circle cx={cx} cy={cy} r={4} fill="#C9A84C" stroke="#FFF" strokeWidth={1.5} />
+        <text 
+          x={cx} 
+          y={cy - 12} 
+          fill="#A07840" 
+          fontSize={9} 
+          fontWeight="bold" 
+          fontFamily="monospace"
+          textAnchor="middle"
+          className="dark:fill-amber-400 select-none"
+        >
+          {isHighest ? 'MAX' : 'MIN'}
+        </text>
+      </g>
+    );
+  }
+  return null;
+};
+
+const CustomActiveDot = (props: any) => {
+  const { cx, cy } = props;
+  return (
+    <g>
+      <circle cx={cx} cy={cy} r={14} fill="#C9A84C" fillOpacity={0.15} className="animate-ping" style={{ transformOrigin: `${cx}px ${cy}px` }} />
+      <circle cx={cx} cy={cy} r={8} fill="#C9A84C" fillOpacity={0.4} />
+      <circle cx={cx} cy={cy} r={5} fill="#C9A84C" stroke="#FFFFFF" strokeWidth={2} />
+    </g>
+  );
+};
 
 export default function Dashboard({ 
   tenders, 
@@ -65,25 +140,25 @@ export default function Dashboard({
 
   // Line Chart Data
   const lineChartData = [
-    { date: 'May 26', score: 65, x: 50, y: 110 },
-    { date: 'May 27', score: 74, x: 175, y: 90 },
-    { date: 'May 28', score: 81, x: 300, y: 75 },
-    { date: 'May 29', score: 89, x: 425, y: 50 },
-    { date: 'May 30', score: 95, x: 550, y: 25 },
+    { date: 'May 26', score: 65 },
+    { date: 'May 27', score: 74 },
+    { date: 'May 28', score: 81 },
+    { date: 'May 29', score: 89 },
+    { date: 'May 30', score: 95 },
   ];
 
-  // Bar Chart Data
+  // Bar Chart Data (Progressive ranking cards instead)
   const barChartData = [
-    { label: 'GeM Portal', value: tenders.filter(t => t.source_name === 'GeM').length || 18, percentage: 40, color: 'url(#gemGradient)' },
-    { label: 'CPPP Portal', value: tenders.filter(t => t.source_name === 'CPPP').length || 26, percentage: 55, color: 'url(#cpppGradient)' },
-    { label: 'Others', value: tenders.filter(t => !['GeM', 'CPPP'].includes(t.source_name)).length || 4, percentage: 10, color: 'url(#otherGradient)' }
+    { label: 'GeM Portal', value: tenders.filter(t => t.source_name === 'GeM').length || 18, percentage: 40, color: 'bg-gradient-to-r from-amber-500 to-[#C9A84C]', text: 'text-[#C9A84C]', bg: 'bg-[#C9A84C]', glow: 'shadow-[0_0_15px_rgba(201,168,76,0.25)]', trend: '+12% this week', isUp: true },
+    { label: 'CPPP Portal', value: tenders.filter(t => t.source_name === 'CPPP').length || 26, percentage: 55, color: 'bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800', text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-500', glow: '', trend: '+18% this week', isUp: true },
+    { label: 'Others', value: tenders.filter(t => !['GeM', 'CPPP'].includes(t.source_name)).length || 4, percentage: 10, color: 'bg-gradient-to-r from-slate-400 to-slate-500', text: 'text-slate-400', bg: 'bg-slate-400', glow: '', trend: '-2% this week', isUp: false }
   ];
 
   // Donut Chart Data
   const donutChartData = [
-    { label: 'Highly Eligible', percentage: 65, color: 'stroke-[#C9A84C]', bg: 'bg-[#C9A84C]', strokeOffset: 0 },
-    { label: 'Partially Eligible', percentage: 25, color: 'stroke-slate-650 dark:stroke-slate-400', bg: 'bg-slate-650 dark:bg-slate-400', strokeOffset: 163.3 },
-    { label: 'Not Eligible', percentage: 10, color: 'stroke-slate-350 dark:stroke-slate-700', bg: 'bg-slate-350 dark:bg-slate-700', strokeOffset: 226.1 }
+    { label: 'Highly Eligible', percentage: 65, color: '#C9A84C', bg: 'bg-[#C9A84C]' },
+    { label: 'Partially Eligible', percentage: 25, color: '#64748B', bg: 'bg-slate-500' },
+    { label: 'Not Eligible', percentage: 10, color: '#94A3B8', bg: 'bg-slate-400' }
   ];
 
   return (
@@ -154,7 +229,7 @@ export default function Dashboard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* SUITABILITY GRAPH (2/3 width on lg) */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
@@ -163,94 +238,56 @@ export default function Dashboard({
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500">Opportunity match scoring distribution across indexed portals</p>
             </div>
+            <div className="text-right flex flex-col items-end">
+              <span className="text-xs font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+                <ArrowUpRight className="w-3.5 h-3.5" /> +30.0%
+              </span>
+              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold tracking-wider uppercase mt-1">Growth this week</span>
+            </div>
           </div>
           
-          {/* Custom Interactive SVG Line Chart */}
-          <div className="h-[200px] w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#C9A84C]/5 to-transparent"></div>
-            
-            {/* SVG Plot */}
-            <svg className="w-full h-full" viewBox="0 0 600 130" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C9A84C" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#C9A84C" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Grid Lines */}
-              <line x1="0" y1="20" x2="600" y2="20" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.8" strokeDasharray="3 3" />
-              <line x1="0" y1="65" x2="600" y2="65" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.8" strokeDasharray="3 3" />
-              <line x1="0" y1="110" x2="600" y2="110" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.8" strokeDasharray="3 3" />
-              
-              {/* Vertical Guide Line */}
-              {hoveredLineIndex !== null && (
-                <line 
-                  x1={lineChartData[hoveredLineIndex].x} 
-                  y1={0} 
-                  x2={lineChartData[hoveredLineIndex].x} 
-                  y2={130} 
-                  stroke="rgba(201, 168, 76, 0.35)" 
-                  strokeWidth="1.5" 
-                  strokeDasharray="4 4" 
-                />
-              )}
-
-              {/* Gradient Fill under the curve */}
-              <path 
-                d="M50,130 L50,110 L175,90 L300,75 L425,50 L550,25 L550,130 Z" 
-                fill="url(#chartGlow)"
-                className="transition-all duration-500 ease-in-out"
-              />
-              
-              {/* Curve Line */}
-              <path 
-                d="M50,110 L175,90 L300,75 L425,50 L550,25" 
-                fill="none" 
-                stroke="#C9A84C" 
-                strokeWidth="2.5" 
-                className="drop-shadow-[0_0_8px_rgba(201,168,76,0.4)]"
-              />
-              
-              {/* Highlight Nodes */}
-              {lineChartData.map((d, index) => (
-                <g key={index}>
-                  <circle 
-                    cx={d.x} 
-                    cy={d.y} 
-                    r={hoveredLineIndex === index ? 6.5 : 4.5} 
-                    fill="#FFFFFF" 
-                    stroke="#C9A84C" 
-                    strokeWidth="3.5" 
-                    className="cursor-pointer transition-all duration-200"
-                    onMouseEnter={() => setHoveredLineIndex(index)}
-                    onMouseLeave={() => setHoveredLineIndex(null)}
-                  />
-                </g>
-              ))}
-            </svg>
-
-            {/* X-Axis Labels */}
-            <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-widest pt-2 shrink-0 border-t border-slate-200 dark:border-slate-800">
-              <span>May 26</span>
-              <span>May 27</span>
-              <span>May 28</span>
-              <span>May 29</span>
-              <span>May 30 (Today)</span>
-            </div>
-
-            {/* Custom Interactive Tooltip */}
-            {hoveredLineIndex !== null && (
-              <div 
-                className="absolute bg-white dark:bg-slate-900 border border-[#C9A84C]/30 p-2.5 rounded-xl text-xs shadow-premium-glow text-slate-800 dark:text-slate-200 transition-all duration-150"
-                style={{ 
-                  left: `${(lineChartData[hoveredLineIndex].x / 600) * 85}%`, 
-                  top: `${(lineChartData[hoveredLineIndex].y / 130) * 40}%` 
-                }}
+          <div className="h-[320px] w-full bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={lineChartData}
+                margin={{ top: 20, right: 10, left: -25, bottom: 0 }}
               >
-                <span className="block font-mono text-slate-500">{lineChartData[hoveredLineIndex].date}</span>
-                <span className="block font-extrabold text-sm text-[#C9A84C] mt-0.5">Suitability: {lineChartData[hoveredLineIndex].score}%</span>
-              </div>
-            )}
+                <defs>
+                  <linearGradient id="areaGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#C9A84C" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#C9A84C" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: 'monospace' }}
+                  dy={10}
+                />
+                <YAxis 
+                  domain={[50, 100]} 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: 'monospace' }}
+                  dx={-5}
+                />
+                <RechartsTooltip 
+                  content={<CustomTooltip />}
+                  cursor={{ stroke: 'rgba(201,168,76,0.25)', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="score" 
+                  stroke="#C9A84C" 
+                  strokeWidth={3} 
+                  fill="url(#areaGlow)" 
+                  animationDuration={1200}
+                  activeDot={<CustomActiveDot />}
+                  dot={<CustomDot />}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -294,154 +331,157 @@ export default function Dashboard({
 
       </div>
 
-      {/* ADDITIONAL CHARTS ROW: Bar Chart (Left) + Donut Chart (Right) */}
+      {/* ADDITIONAL CHARTS ROW: Ranking Cards (Left) + Donut Chart (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* BAR CHART: PORTAL DISTRIBUTIONS */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden">
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="w-4 h-4 text-[#C9A84C]" />
-            <h2 className="text-base font-display font-bold text-slate-800 dark:text-white tracking-wide">Category Index Share</h2>
+        {/* CATEGORY INDEX SHARE: PORTAL DISTRIBUTIONS */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden flex flex-col justify-between min-h-[360px]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4 text-[#C9A84C]" />
+              <h2 className="text-base font-display font-bold text-slate-800 dark:text-white tracking-wide">Category Index Share</h2>
+            </div>
+            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-semibold tracking-wider">PORTAL DISTRIBUTION</span>
           </div>
 
-          <div className="h-[180px] w-full flex items-end justify-around bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-6 relative">
-            <svg className="absolute inset-0 w-0 h-0">
-              <defs>
-                <linearGradient id="gemGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#475569" />
-                  <stop offset="100%" stopColor="#0F172A" />
-                </linearGradient>
-                <linearGradient id="cpppGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#C9A84C" />
-                  <stop offset="100%" stopColor="#A07840" />
-                </linearGradient>
-                <linearGradient id="otherGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#94A3B8" />
-                  <stop offset="100%" stopColor="#475569" />
-                </linearGradient>
-              </defs>
-            </svg>
-
+          <div className="space-y-4 my-auto">
             {barChartData.map((bar, idx) => (
-              <div 
-                key={idx} 
-                className="flex flex-col items-center space-y-3 w-20 relative"
-                onMouseEnter={() => setHoveredBarIndex(idx)}
-                onMouseLeave={() => setHoveredBarIndex(null)}
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                className="bg-slate-50/50 dark:bg-slate-950/40 rounded-xl p-4 border border-slate-200/60 dark:border-slate-800/80 hover:border-[#C9A84C]/30 hover:bg-[#C9A84C]/[0.02] dark:hover:bg-[#C9A84C]/[0.02] transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
               >
-                {/* Bar */}
-                <div className="w-12 bg-slate-200 dark:bg-slate-850 rounded-lg h-24 flex items-end overflow-hidden border border-slate-200 dark:border-slate-700">
-                  <div 
-                    className="w-full rounded-b-lg transition-all duration-500 ease-in-out cursor-pointer hover:opacity-85"
-                    style={{ 
-                      height: `${bar.percentage}%`,
-                      background: bar.color
-                    }}
-                  />
+                {/* Title & Info */}
+                <div className="flex-1 min-w-[140px]">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{bar.label}</span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-250/50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/20 dark:border-slate-700/50">
+                      Rank #{idx + 1}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    {bar.isUp ? (
+                      <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
+                    ) : (
+                      <TrendingDown className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                    )}
+                    <span className={`text-xs font-semibold ${bar.isUp ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {bar.trend}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Label */}
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wide uppercase shrink-0">{bar.label}</span>
-
-                {/* Bar Tooltip */}
-                {hoveredBarIndex === idx && (
-                  <div className="absolute -top-14 bg-white dark:bg-slate-900 border border-[#C9A84C]/25 p-2 rounded-lg text-xs text-slate-800 dark:text-slate-200 shadow-premium-glow z-10 w-24 text-center">
-                    <span className="block font-bold text-[#C9A84C]">{bar.value} Bids</span>
-                    <span className="text-slate-400 font-mono">({bar.percentage}% share)</span>
+                {/* Progress Bar Container */}
+                <div className="flex-[2] flex flex-col justify-center">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">Capture index volume</span>
+                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-350">{bar.value} active bids</span>
                   </div>
-                )}
-              </div>
+                  <div className="h-2.5 w-full bg-slate-205 dark:bg-slate-800/55 rounded-full overflow-hidden relative border border-slate-200/10 dark:border-slate-800/35">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${bar.percentage}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: idx * 0.15 }}
+                      className={`h-full rounded-full ${bar.color} ${bar.glow}`}
+                    />
+                  </div>
+                </div>
+
+                {/* Percentage Badge */}
+                <div className="flex items-center justify-end min-w-[70px]">
+                  <span className="text-lg font-black font-display text-slate-800 dark:text-slate-100 pr-1">{bar.percentage}%</span>
+                  <span className="text-[10px] text-slate-400 font-mono">share</span>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
         {/* DONUT CHART: ELIGIBILITY BREAKDOWN */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden">
-          <div className="flex items-center space-x-2">
-            <PieIcon className="w-4 h-4 text-[#C9A84C]" />
-            <h2 className="text-base font-display font-bold text-slate-800 dark:text-white tracking-wide">Corporate Eligibility Audit</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6 shadow-sm hover:border-[#C9A84C]/30 transition-colors duration-300 relative overflow-hidden flex flex-col justify-between min-h-[360px]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <PieIcon className="w-4 h-4 text-[#C9A84C]" />
+              <h2 className="text-base font-display font-bold text-slate-800 dark:text-white tracking-wide">Corporate Eligibility Audit</h2>
+            </div>
+            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-semibold tracking-wider">COMPLIANCE METRICS</span>
           </div>
 
-          <div className="h-[180px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-center justify-center space-x-12 relative">
-            
+          <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-center gap-8 min-h-[260px] my-auto">
             {/* SVG Donut Circle */}
-            <div className="relative w-28 h-28 flex-shrink-0">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  stroke="rgba(0,0,0,0.06)" 
-                  strokeWidth="12" 
-                />
-                
-                {/* Slice 1: Highly Eligible (65%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-[#C9A84C] transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 0 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 65) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(0)}
+            <div className="relative w-[140px] h-[140px] flex-shrink-0 flex items-center justify-center">
+              <PieChart width={140} height={140}>
+                <Pie
+                  data={donutChartData}
+                  dataKey="percentage"
+                  nameKey="label"
+                  innerRadius={50}
+                  outerRadius={64}
+                  paddingAngle={4}
+                  cornerRadius={3}
+                  startAngle={90}
+                  endAngle={-270}
+                  animationDuration={1000}
+                  onMouseEnter={(_, index) => setHoveredDonutIndex(index)}
                   onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
-
-                {/* Slice 2: Partially Eligible (25%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-slate-650 dark:stroke-slate-400 transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 1 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 90) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(1)}
-                  onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
-
-                {/* Slice 3: Not Eligible (10%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-slate-350 dark:stroke-slate-700 transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 2 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 100) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(2)}
-                  onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
-              </svg>
+                >
+                  {donutChartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color} 
+                      style={{
+                        filter: hoveredDonutIndex === index ? `drop-shadow(0 0 6px ${entry.color}80)` : 'none',
+                        transform: hoveredDonutIndex === index ? 'scale(1.03)' : 'scale(1)',
+                        transformOrigin: '70px 70px',
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  ))}
+                </Pie>
+              </PieChart>
 
               {/* Donut Center Display */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-xs text-slate-400 dark:text-slate-500 font-mono tracking-widest leading-none">RATIO</span>
-                <span className="text-2xl font-display font-black text-slate-800 dark:text-white mt-1 leading-none">
-                  {hoveredDonutIndex !== null ? `${donutChartData[hoveredDonutIndex].percentage}%` : '100%'}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
+                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono tracking-widest uppercase">
+                  {hoveredDonutIndex !== null ? donutChartData[hoveredDonutIndex].label.split(' ')[0] : 'ELIGIBLE'}
+                </span>
+                <span className="text-2xl font-display font-black text-slate-800 dark:text-white mt-0.5 leading-none">
+                  {hoveredDonutIndex !== null ? `${donutChartData[hoveredDonutIndex].percentage}%` : '90%'}
+                </span>
+                <span className="text-[9px] text-slate-400 dark:text-slate-550 font-mono tracking-widest uppercase mt-0.5">
+                  {hoveredDonutIndex !== null ? 'SHARE' : 'TOTAL RATE'}
                 </span>
               </div>
             </div>
 
             {/* Legends */}
-            <div className="space-y-3 flex-1">
+            <div className="flex-1 w-full space-y-2.5">
               {donutChartData.map((slice, idx) => (
                 <div 
                   key={idx} 
-                  className={`flex items-center justify-between p-1 rounded-lg transition-colors cursor-pointer ${hoveredDonutIndex === idx ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border transition-all duration-300 cursor-pointer ${
+                    hoveredDonutIndex === idx 
+                      ? 'bg-[#C9A84C]/[0.05] border-[#C9A84C]/30 shadow-sm' 
+                      : 'bg-slate-50 dark:bg-slate-950/20 border-slate-200/50 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700'
+                  }`}
                   onMouseEnter={() => setHoveredDonutIndex(idx)}
                   onMouseLeave={() => setHoveredDonutIndex(null)}
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className={`w-2 h-2 rounded-full ${slice.bg}`} />
-                    <span className="text-sm font-bold text-slate-600 dark:text-slate-350">{slice.label}</span>
+                  <div className="flex items-center space-x-3">
+                    <span className={`w-3 h-3 rounded-full ${slice.bg} shadow-sm`} />
+                    <div>
+                      <span className="block text-sm font-bold text-slate-700 dark:text-slate-200">{slice.label}</span>
+                      <span className="block text-[9px] text-slate-400 dark:text-slate-500 font-medium">Compliance rating</span>
+                    </div>
                   </div>
-                  <span className="text-sm font-mono font-extrabold text-slate-500 dark:text-slate-400 pr-2">{slice.percentage}%</span>
+                  <div className="text-right">
+                    <span className="block text-base font-black font-mono text-slate-800 dark:text-slate-100">{slice.percentage}%</span>
+                    <span className="block text-[9px] text-emerald-500 dark:text-emerald-400 font-semibold font-mono">
+                      {idx === 0 ? '✓ Low Risk' : idx === 1 ? '⚡ Moderate' : '⚠ High Risk'}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
