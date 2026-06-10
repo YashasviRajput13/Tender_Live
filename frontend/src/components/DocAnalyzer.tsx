@@ -152,18 +152,26 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+<<<<<<< Updated upstream
+              <h4 className="text-xs font-bold text-slate-900 leading-snug">
                 {activeUploadTask.status === 'failed'
                   ? 'Analysis failed. See error in logs below.'
                   : activeUploadTask.status === 'running'
                     ? 'Extracting text and qualifications...'
                     : 'Document parsed. Preparing matching...'}
               </h4>
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+              <p className="text-[10px] text-slate-500 font-medium">
                 Chaining into the Eligibility evaluator.
               </p>
             </div>
+=======
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                {activeUploadTask.status === 'running' ? 'Extracting text and qualifications...' : 'Document parsed. Preparing matching...'}
+              </h4>
+              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Chaining into the Eligibility evaluator.</p>
+            </div>
             <span className="text-xl font-bold text-[#C9A84C] font-mono">{activeUploadTask.progress}%</span>
+>>>>>>> Stashed changes
           </div>
 
           {/* Progress loader */}

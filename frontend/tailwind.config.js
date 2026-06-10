@@ -12,9 +12,9 @@ export default {
         surface: '#F8FAFC',
         card: '#FFFFFF',
         primary: {
-          500: '#C9A84C', // Metallic Gold
-          600: '#B8973B', // Darker Gold Hover
-          400: '#E6C89C', // Lighter Gold Accent
+          500: '#F97316', // Orange
+          600: '#EA580C', // Orange Hover
+          400: '#FDBA74', // Light Orange
         },
         secondary: {
           500: '#06B6D4', // Cyan
@@ -40,9 +40,9 @@ export default {
           50: '#FFFFFF'
         },
         brand: {
-          500: '#C9A84C', // Compatibility
-          600: '#B8973B',
-          400: '#E6C89C',
+          500: '#F97316', // Compatibility
+          600: '#EA580C',
+          400: '#FDBA74',
         }
       },
       fontSize: {
@@ -56,9 +56,8 @@ export default {
         '4xl': ['2.65rem', { lineHeight: '1.1' }],      // scaled up for readability
       },
       fontFamily: {
-        sans: ['"General Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        display: ['"Clash Display"', '"General Sans"', 'Manrope', 'Inter', 'sans-serif'],
-        serif: ['"Cormorant Garamond"', '"Playfair Display"', 'Georgia', 'serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        display: ['Manrope', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {
