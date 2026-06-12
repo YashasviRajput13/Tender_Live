@@ -177,7 +177,10 @@ def run_eligibility_matching(task_id: str, tender_db_id: int, company_db_id: int
                 "risks": summary_res.get("risks", []),
                 "msme_advantage": eligibility_res.get("msme_advantage")
             },
-            timeline=summary_res.get("timeline", {}),
+            timeline={
+                **summary_res.get("timeline", {}),
+                "financial_info": summary_res.get("financial_info", {})
+            },
             checklist={
                 "submission_checklist": summary_res.get("submission_checklist", []),
                 "key_requirements": summary_res.get("key_requirements", [])

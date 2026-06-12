@@ -161,7 +161,9 @@ class GeMScraper(BaseScraper):
 
             deadline = self.parse_date((doc.get("final_end_date_sort") or [""])[0])
             source_id = (doc.get("b_id") or [None])[0]
-            source_url = f"https://bidplus.gem.gov.in/public-bid-other-details/{source_id}" if source_id else self.base_url
+            bid_detail_url = f"https://bidplus.gem.gov.in/public-bid-other-details/{source_id}" if source_id else self.base_url
+            pdf_url = f"https://bidplus.gem.gov.in/showbidDocument/{source_id}" if source_id else None
+            source_url = self.base_url
 
             # Parse budget from estimated_bid_value
             budget = None
@@ -207,6 +209,8 @@ class GeMScraper(BaseScraper):
                 "deadline": deadline,
                 "eligibility_criteria": eligibility_text,
                 "source_url": source_url,
+                "bid_detail_url": bid_detail_url,
+                "pdf_url": pdf_url,
                 "source_name": "GeM",
                 "raw_html": json.dumps(doc)
             })
@@ -253,6 +257,8 @@ class GeMScraper(BaseScraper):
                     "deadline": deadline,
                     "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
                     "source_url": self.base_url,
+                    "bid_detail_url": self.base_url,
+                    "pdf_url": None,
                     "source_name": "GeM",
                     "raw_html": str(row)
                 })
@@ -282,6 +288,8 @@ class GeMScraper(BaseScraper):
                     "deadline": deadline,
                     "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
                     "source_url": self.base_url,
+                    "bid_detail_url": self.base_url,
+                    "pdf_url": None,
                     "source_name": "GeM",
                     "raw_html": str(block)
                 })
@@ -412,7 +420,9 @@ class GeMScraper(BaseScraper):
                 "budget": budget,
                 "deadline": deadline,
                 "eligibility_criteria": f"GeM Bid Terms for {tender_id}. Must comply with GeM general terms & conditions (GTC).",
-                "source_url": pdf_link or self.base_url,
+                "source_url": self.base_url,
+                "bid_detail_url": self.base_url,
+                "pdf_url": pdf_link,
                 "source_name": "GeM",
                 "raw_html": str(block)
             })

@@ -65,6 +65,8 @@ class Tender(Base):
     eligibility_criteria = Column(Text, nullable=True)
     raw_html = Column(Text, nullable=True)
     source_url = Column(String, nullable=True)
+    bid_detail_url = Column(String, nullable=True)
+    pdf_url = Column(String, nullable=True)
     source_name = Column(String, nullable=False)  # GeM, CPPP, etc.
     created_at = Column(DateTime, default=datetime.utcnow)
     status = Column(String, default="discovered")  # discovered, processing, analyzed

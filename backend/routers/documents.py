@@ -3,12 +3,14 @@ import uuid
 import shutil
 import logging
 import threading
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.orm import Session
 import models, schemas, auth
 from database import get_db
 from config import settings
 from workers.document import process_tender_document
+from sse import sse_manager
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,10 @@ router = APIRouter(prefix="/api/documents", tags=["Document Analyzer"])
 
 @router.post("/analyze", response_model=schemas.AgentTaskOut)
 def upload_tender_document(
+    title: str = Form(...),
+    department: str = Form(...),
+    budget: float = Form(...),
+    deadline: str = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
@@ -48,15 +54,49 @@ def upload_tender_document(
 
     # 2. Create shell Tender record to map findings to
     # We populate basic identifiers; full details will be filled by the AI document agent.
+    from datetime import datetime
+    try:
+        parsed_deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+    except Exception:
+        parsed_deadline = None
+
     shell_tender = models.Tender(
         tender_id=f"UPLOAD-{file_id[:8].upper()}",
-        title=f"Uploaded Document: {file.filename}",
+        title=title,
+        department=department,
+        budget=budget,
+        deadline=parsed_deadline,
         source_name="Manual Upload",
         status="discovered"
     )
     db.add(shell_tender)
     db.commit()
     db.refresh(shell_tender)
+
+    # Fire SSE event for real-time dashboard update
+    def fire_sse():
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(sse_manager.publish("dashboard_events", "tender_discovered", {
+                "id": shell_tender.id,
+                "title": shell_tender.title,
+                "tender_id": shell_tender.tender_id,
+                "department": shell_tender.department,
+                "budget": float(shell_tender.budget) if shell_tender.budget else None,
+                "deadline": shell_tender.deadline.isoformat() if shell_tender.deadline else None,
+                "source_name": shell_tender.source_name,
+                "status": shell_tender.status
+            }))
+        except Exception as e:
+            logger.warning(f"Failed to send SSE for tender_added: {e}")
+        finally:
+            try:
+                loop.close()
+            except:
+                pass
+                
+    threading.Thread(target=fire_sse, daemon=True).start()
 
     # 3. Create Celery task
     task_id = str(uuid.uuid4())

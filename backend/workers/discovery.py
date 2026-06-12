@@ -102,10 +102,12 @@ def run_tender_discovery(task_id: str):
                 location=tender_data["location"],
                 budget=tender_data["budget"],
                 deadline=tender_data["deadline"],
-                eligibility_criteria=tender_data["eligibility_criteria"],
-                source_url=tender_data["source_url"],
-                source_name=tender_data["source_name"],
-                raw_html=tender_data["raw_html"],
+                eligibility_criteria=tender_data.get("eligibility_criteria"),
+                source_url=tender_data.get("source_url"),
+                bid_detail_url=tender_data.get("bid_detail_url"),
+                pdf_url=tender_data.get("pdf_url"),
+                source_name=tender_data.get("source_name"),
+                raw_html=tender_data.get("raw_html"),
                 status="discovered"
             )
             if tender_data.get("source_url"):
@@ -128,6 +130,9 @@ def run_tender_discovery(task_id: str):
                 "department": new_tender.department,
                 "budget": float(new_tender.budget) if new_tender.budget else None,
                 "deadline": new_tender.deadline.isoformat() if new_tender.deadline else None,
+                "source_url": new_tender.source_url,
+                "bid_detail_url": new_tender.bid_detail_url,
+                "pdf_url": new_tender.pdf_url,
                 "source_name": new_tender.source_name,
                 "created_at": new_tender.created_at.isoformat()
             }))

@@ -53,24 +53,30 @@ class CPPPScraper(BaseScraper):
 
     def build_stable_cppp_url(self, href: str, tender_ref: str) -> Optional[str]:
         """
-        Build a stable, session-free CPPP URL.
+        Build a stable, session-free CPPP URL from a tendersfullview URL.
         The `tendersfullview` URLs contain embedded session tokens (A13h1...) that expire.
-        Instead, use the NIC eProcure advanced search URL with the tender reference.
+        Strategy: decode the first base64 segment to get the numeric tender ID,
+        then build a permanent NIC eProcure detail URL.
         """
-        # Try to extract numeric tender ID from first base64 segment of the URL
         import base64
         try:
             path_parts = href.rstrip('/').split('/')
-            # The base64 segments are separated by A13h1 in CPPP URLs
-            first_segment = path_parts[-1].split('A13h1')[0]
-            decoded = base64.b64decode(first_segment + '==').decode('utf-8', errors='ignore')
+            last_part = path_parts[-1]
+            # The base64 segments are separated by 'A13h1' in CPPP URLs
+            first_segment = last_part.split('A13h1')[0]
+            # Strip existing padding before re-padding to avoid invalid base64
+            first_segment = first_segment.rstrip('=')
+            # Pad to a valid base64 length (multiple of 4)
+            padding_needed = (4 - len(first_segment) % 4) % 4
+            padded = first_segment + '=' * padding_needed
+            decoded = base64.b64decode(padded).decode('utf-8', errors='ignore').strip()
             if decoded.isdigit():
-                # Direct NIC eProcure URL with numeric tender ID
+                # Direct NIC eProcure permanent URL with numeric tender ID
                 return f"https://eprocure.gov.in/eprocure/app?page=FrontEndTenderDetails&service=page&id={decoded}"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"CPPP base64 decode failed for href={href}: {e}")
 
-        # Fallback: NIC eProcure advanced search for this tender reference
+        # Fallback: NIC eProcure advanced search by reference number
         from urllib.parse import quote
         safe_ref = quote(tender_ref.strip(), safe='')
         return f"https://eprocure.gov.in/eprocure/app?page=FrontEndAdvancedSearchPage&service=page&searchKey={safe_ref}"
@@ -181,21 +187,26 @@ class CPPPScraper(BaseScraper):
 
             deadline = self.parse_date(closing_date)
 
-            # Build a stable, session-free URL for this tender
-            # The session-based tendersfullview URLs expire immediately after scraping
+            # Build a stable, session-free URL for this tender.
+            # tendersfullview URLs embed session tokens that expire — always convert them.
             stable_url = None
             links = row.find_all("a", href=True)
             for a in links:
                 href = a["href"]
                 normalized = self.normalize_cppp_link(href)
-                if normalized and "tendersfullview" in normalized:
+                if not normalized:
+                    continue
+                if "tendersfullview" in normalized:
+                    # Convert the session URL to a permanent NIC eProcure URL
                     stable_url = self.build_stable_cppp_url(normalized, tender_id)
+                    logger.debug(f"CPPP: converted tendersfullview -> {stable_url}")
                     break
-                elif normalized:
+                else:
+                    # Any other valid link (PDF, etc.) is usable
                     stable_url = normalized
                     break
 
-            # Final fallback: CPPP search by reference number
+            # Final fallback: CPPP search by reference number (always unique per tender)
             if not stable_url:
                 from urllib.parse import quote
                 safe_ref = quote(tender_id.strip(), safe='')

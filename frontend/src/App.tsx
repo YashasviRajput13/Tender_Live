@@ -497,10 +497,13 @@ export default function App() {
   };
 
   // 8. TRIGGER REPORT EXPORT PDF/EXCEL WORKER
-  const handleTriggerReport = async (format: string): Promise<string | null> => {
+  const handleTriggerReport = async (format: string, tenderId?: number): Promise<string | null> => {
     try {
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.post(`${API_BASE_URL}/api/reports?format=${format}`, {}, config);
+      const url = tenderId 
+        ? `${API_BASE_URL}/api/reports?format=${format}&tender_id=${tenderId}`
+        : `${API_BASE_URL}/api/reports?format=${format}`;
+      const response = await axios.post(url, {}, config);
       const task = response.data;
 
       // Poll until task completes (up to 60s, checking every 1s)

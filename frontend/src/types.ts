@@ -51,6 +51,8 @@ export interface Tender {
   deadline?: string;
   eligibility_criteria?: string;
   source_url?: string;
+  bid_detail_url?: string;
+  pdf_url?: string;
   source_name: string;
   created_at: string;
   status: string;

@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api/reports", tags=["Report Management"])
 @router.post("", response_model=schemas.AgentTaskOut)
 def trigger_report_compilation(
     format: str = Query("pdf", description="pdf or excel"),
+    tender_id: int = Query(None, description="Optional tender ID for a specific tender report"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -52,13 +53,13 @@ def trigger_report_compilation(
 
     # Trigger worker task (with local thread fallback if Redis/Celery is unavailable)
     try:
-        generate_reports.delay(task_id, format_type, company.id)
+        generate_reports.delay(task_id, format_type, company.id, tender_id)
         logger.info(f"Triggered background {format_type.upper()} report generation. Task ID: {task_id}")
     except Exception as celery_err:
         logger.warning(f"Redis/Celery unavailable for report task, falling back to local thread: {str(celery_err)}")
         threading.Thread(
             target=generate_reports.run,
-            args=(task_id, format_type, company.id),
+            args=(task_id, format_type, company.id, tender_id),
             daemon=True
         ).start()
         logger.info(f"Started local report generation thread for Task ID: {task_id}")

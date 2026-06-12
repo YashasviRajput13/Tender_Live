@@ -10,6 +10,7 @@ import {
   XCircle,
   Clock,
   TrendingUp,
+  Upload,
 } from 'lucide-react';
 import { Tender } from '../types';
 
@@ -236,24 +237,31 @@ export default function TenderList({
                     {/* Source */}
                     <td className="py-3.5 px-4 w-[15%] min-w-[120px]">
                       <div className="flex flex-col space-y-1">
-                        <span className="font-black text-[13px] text-slate-900 dark:text-white">{t.source_name}</span>
-                        {t.source_url && (
-                          <a
-                            href={t.source_url}
-                            target="_blank"
-<<<<<<< Updated upstream
-rel="noreferrer noopener"
-className="flex items-center text-[10px] text-primary-600 hover:text-primary-700 font-semibold space-x-0.5"
-onClick={(e) => e.stopPropagation()}
-=======
-                            rel="noreferrer"
-                            className="flex items-center text-[11px] text-[#8A662D] dark:text-[#E6C89C] hover:text-[#A07840] dark:hover:text-gold-400 font-extrabold space-x-1 transition-colors whitespace-nowrap inline-flex"
->>>>>>> Stashed changes
-                          >
-                            <span>Bid Document</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
+                        <span className="font-black text-[13px] text-slate-900 dark:text-white">
+                          {t.source_name === 'Manual Upload' ? (
+                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/30 text-[10px] uppercase tracking-wider">
+                              <Upload className="w-3 h-3" />
+                              <span>Manual</span>
+                            </span>
+                          ) : (
+                            t.source_name
+                          )}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const targetUrl = t.pdf_url || t.bid_detail_url || t.source_url;
+                            if (targetUrl) {
+                              window.open(targetUrl, "_blank");
+                            } else {
+                              alert("Official tender document not available.");
+                            }
+                          }}
+                          className="flex items-center text-[11px] text-[#8A662D] dark:text-[#E6C89C] hover:text-[#A07840] dark:hover:text-gold-400 font-extrabold space-x-1 transition-colors whitespace-nowrap inline-flex"
+                        >
+                          <span>Bid Document</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
                       </div>
                     </td>
 

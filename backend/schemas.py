@@ -94,6 +94,8 @@ class TenderOut(BaseModel):
     deadline: Optional[datetime] = None
     eligibility_criteria: Optional[str] = None
     source_url: Optional[str] = None
+    bid_detail_url: Optional[str] = None
+    pdf_url: Optional[str] = None
     source_name: str
     created_at: datetime
     status: str

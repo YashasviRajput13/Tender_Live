@@ -56,34 +56,80 @@ export default function Dashboard({
     return daysLeft > 0 && daysLeft <= 15;
   }).length;
 
-  const averageOpportunityScore = activeTendersCount > 0 
-    ? Math.round(tenders.reduce((acc, t) => acc + (t.opportunity_score || 75), 0) / activeTendersCount) 
-    : 78;
+  // 1. Average Opportunity Score (Dynamic, no fallbacks)
+  const analyzedTenders = tenders.filter(t => t.opportunity_score !== undefined && t.opportunity_score !== null);
+  const averageOpportunityScore = analyzedTenders.length > 0 
+    ? Math.round(analyzedTenders.reduce((acc, t) => acc + (t.opportunity_score as number), 0) / analyzedTenders.length) 
+    : 0;
 
   // Get latest discovered tenders
   const latestTenders = tenders.slice(0, 4);
 
-  // Line Chart Data
-  const lineChartData = [
-    { date: 'May 26', score: 65, x: 50, y: 110 },
-    { date: 'May 27', score: 74, x: 175, y: 90 },
-    { date: 'May 28', score: 81, x: 300, y: 75 },
-    { date: 'May 29', score: 89, x: 425, y: 50 },
-    { date: 'May 30', score: 95, x: 550, y: 25 },
-  ];
+  // 2. Line Chart Data (Historical Suitability) - Computed from last 5 days
+  const today = new Date();
+  const last5Days = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (4 - i));
+    return d;
+  });
 
-  // Bar Chart Data
+  const lineChartData = last5Days.map((date, i) => {
+    const dayStart = new Date(date.setHours(0,0,0,0)).getTime();
+    const dayEnd = new Date(date.setHours(23,59,59,999)).getTime();
+    
+    const dayTenders = analyzedTenders.filter(t => {
+      const tTime = new Date(t.created_at).getTime();
+      return tTime >= dayStart && tTime <= dayEnd;
+    });
+    
+    const dayAvg = dayTenders.length > 0 
+      ? Math.round(dayTenders.reduce((acc, t) => acc + (t.opportunity_score as number), 0) / dayTenders.length)
+      : 0;
+      
+    // x range 50 to 550, y range 130 to 25 (inverted, 130 is 0%, 25 is 100%)
+    const xPos = 50 + (i * 125); 
+    const yPos = 130 - ((dayAvg / 100) * 105); 
+    
+    const month = date.toLocaleString('default', { month: 'short' });
+    const day = date.getDate();
+    return { 
+      date: `${month} ${day}${i === 4 ? ' (Today)' : ''}`, 
+      score: dayAvg, 
+      x: xPos, 
+      y: yPos 
+    };
+  });
+
+  // 3. Bar Chart Data (Dynamic Source Counts)
+  const gemCount = tenders.filter(t => t.source_name === 'GeM').length;
+  const cpppCount = tenders.filter(t => t.source_name === 'CPPP').length;
+  const otherCount = activeTendersCount - (gemCount + cpppCount);
+  
   const barChartData = [
-    { label: 'GeM Portal', value: tenders.filter(t => t.source_name === 'GeM').length || 18, percentage: 40, color: 'url(#gemGradient)' },
-    { label: 'CPPP Portal', value: tenders.filter(t => t.source_name === 'CPPP').length || 26, percentage: 55, color: 'url(#cpppGradient)' },
-    { label: 'Others', value: tenders.filter(t => !['GeM', 'CPPP'].includes(t.source_name)).length || 4, percentage: 10, color: 'url(#otherGradient)' }
+    { label: 'GeM Portal', value: gemCount, percentage: activeTendersCount ? Math.round((gemCount / activeTendersCount) * 100) : 0, color: 'url(#gemGradient)' },
+    { label: 'CPPP Portal', value: cpppCount, percentage: activeTendersCount ? Math.round((cpppCount / activeTendersCount) * 100) : 0, color: 'url(#cpppGradient)' },
+    { label: 'Others', value: otherCount, percentage: activeTendersCount ? Math.round((otherCount / activeTendersCount) * 100) : 0, color: 'url(#otherGradient)' }
   ];
 
-  // Donut Chart Data
+  // 4. Donut Chart Data (Dynamic Eligibility)
+  const highlyEligible = tenders.filter(t => t.eligibility === 'eligible').length;
+  const partiallyEligible = tenders.filter(t => t.eligibility === 'partially_eligible').length;
+  const notEligible = tenders.filter(t => t.eligibility === 'not_eligible').length;
+  const analyzedCount = highlyEligible + partiallyEligible + notEligible;
+
+  const highlyPct = analyzedCount ? Math.round((highlyEligible / analyzedCount) * 100) : 0;
+  const partialPct = analyzedCount ? Math.round((partiallyEligible / analyzedCount) * 100) : 0;
+  const notPct = analyzedCount ? Math.round((notEligible / analyzedCount) * 100) : 0;
+
+  // Use precise floating point mathematics for rendering SVGs to avoid gaps
+  const highlyFloat = analyzedCount ? (highlyEligible / analyzedCount) * 100 : 0;
+  const partialFloat = analyzedCount ? (partiallyEligible / analyzedCount) * 100 : 0;
+  const notFloat = analyzedCount ? (notEligible / analyzedCount) * 100 : 0;
+
   const donutChartData = [
-    { label: 'Highly Eligible', percentage: 65, color: 'stroke-[#C9A84C]', bg: 'bg-[#C9A84C]', strokeOffset: 0 },
-    { label: 'Partially Eligible', percentage: 25, color: 'stroke-slate-650 dark:stroke-slate-400', bg: 'bg-slate-650 dark:bg-slate-400', strokeOffset: 163.3 },
-    { label: 'Not Eligible', percentage: 10, color: 'stroke-slate-350 dark:stroke-slate-700', bg: 'bg-slate-350 dark:bg-slate-700', strokeOffset: 226.1 }
+    { label: 'Highly Eligible', percentage: highlyPct, color: 'stroke-[#C9A84C]', bg: 'bg-[#C9A84C]', strokeOffset: 251.2 - (251.2 * highlyFloat) / 100 },
+    { label: 'Partially Eligible', percentage: partialPct, color: 'stroke-slate-650 dark:stroke-slate-400', bg: 'bg-slate-650 dark:bg-slate-400', strokeOffset: 251.2 - (251.2 * (highlyFloat + partialFloat)) / 100 },
+    { label: 'Not Eligible', percentage: notPct, color: 'stroke-slate-350 dark:stroke-slate-700', bg: 'bg-slate-350 dark:bg-slate-700', strokeOffset: 251.2 - (251.2 * (highlyFloat + partialFloat + notFloat)) / 100 }
   ];
 
   return (
@@ -118,7 +164,7 @@ export default function Dashboard({
           },
           { 
             title: 'Avg Match Rating', 
-            val: `${averageOpportunityScore}%`, 
+            val: averageOpportunityScore > 0 ? `${averageOpportunityScore}%` : 'N/A', 
             desc: 'Company suitability average', 
             icon: Award,
             iconBg: 'bg-[#C9A84C]/10 border-[#C9A84C]/25 text-[#C9A84C]',
@@ -375,48 +421,22 @@ export default function Dashboard({
                   stroke="rgba(0,0,0,0.06)" 
                   strokeWidth="12" 
                 />
-                
-                {/* Slice 1: Highly Eligible (65%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-[#C9A84C] transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 0 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 65) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(0)}
-                  onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
-
-                {/* Slice 2: Partially Eligible (25%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-slate-650 dark:stroke-slate-400 transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 1 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 90) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(1)}
-                  onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
-
-                {/* Slice 3: Not Eligible (10%) */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="40" 
-                  fill="transparent" 
-                  className={`stroke-slate-350 dark:stroke-slate-700 transition-all duration-300 cursor-pointer ${hoveredDonutIndex === 2 ? 'stroke-[14px]' : 'stroke-[11px]'}`}
-                  strokeWidth="11" 
-                  strokeDasharray="251.2" 
-                  strokeDashoffset={251.2 - (251.2 * 100) / 100}
-                  onMouseEnter={() => setHoveredDonutIndex(2)}
-                  onMouseLeave={() => setHoveredDonutIndex(null)}
-                />
+                {/* Dynamic Slices */}
+                {analyzedCount > 0 && donutChartData.map((slice, index) => (
+                  <circle
+                    key={index}
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="transparent"
+                    className={`${slice.color} transition-all duration-300 cursor-pointer ${hoveredDonutIndex === index ? 'stroke-[14px]' : 'stroke-[11px]'}`}
+                    strokeWidth="11"
+                    strokeDasharray="251.2"
+                    strokeDashoffset={slice.strokeOffset}
+                    onMouseEnter={() => setHoveredDonutIndex(index)}
+                    onMouseLeave={() => setHoveredDonutIndex(null)}
+                  />
+                ))}
               </svg>
 
               {/* Donut Center Display */}

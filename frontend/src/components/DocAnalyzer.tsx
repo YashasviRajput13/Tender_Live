@@ -17,6 +17,10 @@ interface DocAnalyzerProps {
 
 export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: DocAnalyzerProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [budget, setBudget] = useState('');
+  const [deadline, setDeadline] = useState('');
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -35,6 +39,10 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
     setErrorMsg('');
     
     const formData = new FormData();
+    formData.append('title', title);
+    formData.append('department', department);
+    formData.append('budget', budget);
+    formData.append('deadline', deadline ? new Date(deadline).toISOString() : '');
     formData.append('file', file);
 
     try {
@@ -49,6 +57,10 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
       const new_task = response.data;
       onAnalyzeComplete(new_task.id);
       setFile(null);
+      setTitle('');
+      setDepartment('');
+      setBudget('');
+      setDeadline('');
     } catch (err: any) {
       setErrorMsg(err.response?.data?.detail || 'Failed to submit document.');
     } finally {
@@ -86,7 +98,28 @@ export default function DocAnalyzer({ onAnalyzeComplete, activeUploadTask }: Doc
             <p className="text-xs text-slate-400 dark:text-slate-500 font-mono leading-relaxed">// Supports standard bid layouts (max 40k characters)</p>
           </div>
 
-          <div className="relative max-w-xs mx-auto">
+          <div className="space-y-4 max-w-sm mx-auto w-full text-left">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tender Name <span className="text-red-500">*</span></label>
+              <input type="text" required value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:border-[#C9A84C]" placeholder="e.g. IT Equipment Supply" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Organization <span className="text-red-500">*</span></label>
+              <input type="text" required value={department} onChange={e => setDepartment(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:border-[#C9A84C]" placeholder="e.g. Ministry of Finance" />
+            </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Budget (₹) <span className="text-red-500">*</span></label>
+                <input type="number" required value={budget} onChange={e => setBudget(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:border-[#C9A84C]" placeholder="500000" />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Deadline <span className="text-red-500">*</span></label>
+                <input type="datetime-local" required value={deadline} onChange={e => setDeadline(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:border-[#C9A84C]" />
+              </div>
+            </div>
+          </div>
+
+          <div className="relative max-w-sm mx-auto">
             <input
               type="file"
               accept=".pdf"

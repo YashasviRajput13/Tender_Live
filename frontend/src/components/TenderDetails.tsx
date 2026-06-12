@@ -6,7 +6,9 @@ import {
   AlertTriangle, 
   Sparkles,
   Award,
-  Cpu
+  Cpu,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { Tender, EligibilityReport } from '../types';
 import { API_BASE_URL } from '../api';
@@ -18,7 +20,7 @@ interface TenderDetailsProps {
   onClose: () => void;
   onRunAnalysis: (tenderId: number) => void;
   analyzingTenderId: number | null;
-  onTriggerReport: (format: string) => Promise<string | null>;
+  onTriggerReport: (format: string, tenderId?: number) => Promise<string | null>;
 }
 
 export default function TenderDetails({ 
@@ -32,20 +34,20 @@ export default function TenderDetails({
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string>('');
 
-  const getMatchBadge = (status: string) => {
+  const getMatchBadge = (status: 'pass' | 'fail' | 'conditional' | string) => {
     switch (status) {
       case 'pass':
         return (
-          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-[#C9A84C]/10 text-[#A07840] dark:text-[#C9A84C] border border-[#C9A84C]/20 text-[10px] font-extrabold uppercase tracking-wider">
-            <Check className="w-3 h-3 text-[#C9A84C]" />
-            <span>Eligible</span>
+          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-[10px] font-extrabold uppercase tracking-wider">
+            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+            <span>Aligned</span>
           </span>
         );
       case 'fail':
         return (
-          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-550 border border-slate-200 dark:border-slate-850 text-[10px] font-extrabold uppercase tracking-wider">
-            <X className="w-3 h-3 text-slate-400 dark:text-slate-650" />
-            <span>Not Eligible</span>
+          <span className="flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 text-[10px] font-extrabold uppercase tracking-wider">
+            <XCircle className="w-3 h-3 text-rose-500" />
+            <span>Blocked</span>
           </span>
         );
       default:
@@ -58,37 +60,64 @@ export default function TenderDetails({
     }
   };
 
+  const handleOpenOfficialDoc = () => {
+    const targetUrl = tender.pdf_url || tender.bid_detail_url || tender.source_url;
+    if (targetUrl) {
+      window.open(targetUrl, "_blank");
+    } else {
+      alert("Official tender document not available.");
+    }
+  };
+
   const handleDownload = async (format: string) => {
     setDownloadingFormat(format);
     setDownloadError('');
     try {
-      const file_name = await onTriggerReport(format);
-      if (file_name) {
+      if (format === 'pdf') {
         const token = localStorage.getItem('token');
-        const url = `${API_BASE_URL}/api/reports/download?file_name=${encodeURIComponent(file_name)}`;
+        const url = `${API_BASE_URL}/api/tenders/${tender.id}/summary/download`;
         const response = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` }
         });
-<<<<<<< Updated upstream
-
+        // Log headers as requested
+        console.log('Content-Type:', response.headers.get('Content-Type'));
+        console.log('Content-Disposition:', response.headers.get('Content-Disposition'));
+        
         if (!response.ok) {
-          throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
+          throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
         }
-
-=======
-        if (!response.ok) throw new Error('Download request failed.');
->>>>>>> Stashed changes
         const blob = await response.blob();
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = file_name;
+        link.download = `Tender_Summary_${tender.tender_id.replace(/\//g, '_')}.pdf`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         window.URL.revokeObjectURL(downloadUrl);
       } else {
-        setDownloadError('Report generation failed or timed out. Check logs and try again.');
+        const file_name = await onTriggerReport(format, tender.id);
+        if (file_name) {
+          const token = localStorage.getItem('token');
+          const url = `${API_BASE_URL}/api/reports/download?file_name=${encodeURIComponent(file_name)}`;
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}. File may not be ready yet.`);
+          }
+          const blob = await response.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = file_name;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(downloadUrl);
+        } else {
+          setDownloadError('Report generation failed or timed out. Check logs and try again.');
+        }
       }
     } catch (e: any) {
       console.error(e);
@@ -144,6 +173,18 @@ export default function TenderDetails({
               <span className="text-xs font-mono font-bold px-2.5 py-1 bg-[#C9A84C]/10 border border-[#C9A84C]/25 text-[#A07840] dark:text-[#C9A84C] rounded-lg">
                 Budget: {tender.budget ? `₹ ${tender.budget.toLocaleString()}` : 'Open Value'}
               </span>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={handleOpenOfficialDoc}
+                className="py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:text-[#C9A84C] hover:border-[#C9A84C]/30 text-xs font-bold transition-all flex items-center space-x-2"
+              >
+                {tender.pdf_url ? (
+                  <>📄 <span>View Official PDF</span></>
+                ) : (
+                  <>🔗 <span>Open Official Tender Page</span></>
+                )}
+              </button>
             </div>
           </div>
 
@@ -277,108 +318,38 @@ export default function TenderDetails({
             </div>
           )}
 
-{/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
-{eligibilityReport && (
-  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
-    {downloadError && (
-      <span className="text-[10px] text-danger font-semibold text-center">
-        {downloadError}
-      </span>
-    )}
-
-    <div className="flex gap-3">
-      <button
-        onClick={() => handleDownload('pdf')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'pdf'
-            ? 'Generating PDF...'
-            : 'Download Briefing (PDF)'}
-        </span>
-      </button>
-
-      <button
-        onClick={() => handleDownload('excel')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'excel'
-            ? 'Compiling Sheet...'
-            : 'Download Catalog (XLSX)'}
-        </span>
-      </button>
-    </div>
-  </div>
-)}
-        </div>
-
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
-<<<<<<< Updated upstream
-{eligibilityReport && (
-  <div className="p-5 border-t border-slate-205 bg-slate-50/80 flex flex-col gap-3 shrink-0">
-    {downloadError && (
-      <span className="text-[10px] text-danger font-semibold text-center">
-        {downloadError}
-      </span>
-    )}
-
-    <div className="flex gap-3">
-      <button
-        onClick={() => handleDownload('pdf')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'pdf'
-            ? 'Generating PDF...'
-            : 'Download Briefing (PDF)'}
-        </span>
-      </button>
-
-      <button
-        onClick={() => handleDownload('excel')}
-        disabled={downloadingFormat !== null}
-        className="flex-1 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-bold text-xs transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-      >
-        <Download className="w-3.5 h-3.5 text-primary-500" />
-        <span>
-          {downloadingFormat === 'excel'
-            ? 'Compiling Sheet...'
-            : 'Download Catalog (XLSX)'}
-        </span>
-      </button>
-    </div>
-  </div>
-)}
-=======
         {eligibilityReport && (
-          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-3 shrink-0">
-            <button
-              onClick={() => handleDownload('pdf')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
-              <span>{downloadingFormat === 'pdf' ? 'Generating PDF...' : 'Download Briefing (PDF)'}</span>
-            </button>
-            
-            <button
-              onClick={() => handleDownload('excel')}
-              disabled={downloadingFormat !== null}
-              className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-800 hover:bg-[#C9A84C]/5 dark:hover:bg-[#C9A84C]/10 hover:border-[#C9A84C]/30 dark:hover:border-[#C9A84C]/40 text-slate-700 dark:text-slate-300 font-bold text-sm transition-all inline-flex items-center justify-center space-x-2 shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C9A84C]" />
-              <span>{downloadingFormat === 'excel' ? 'Compiling Sheet...' : 'Download Catalog (XLSX)'}</span>
-            </button>
+          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-3 shrink-0">
+            {downloadError && (
+              <span className="text-[10px] text-danger font-semibold text-center">
+                {downloadError}
+              </span>
+            )}
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleDownload('pdf')}
+                disabled={downloadingFormat !== null}
+                className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4 text-[#C9A84C]" />
+                <span>
+                  {downloadingFormat === 'pdf' ? 'Generating Tender Briefing...' : 'Download Briefing (PDF)'}
+                </span>
+              </button>
+              <button
+                onClick={() => handleDownload('excel')}
+                disabled={downloadingFormat !== null}
+                className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4 text-[#C9A84C]" />
+                <span>
+                  {downloadingFormat === 'excel' ? 'Exporting...' : 'Download Catalog (XLSX)'}
+                </span>
+              </button>
+            </div>
           </div>
         )}
->>>>>>> Stashed changes
         
       </motion.div>
     </>
