@@ -5,7 +5,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 env_file = os.getenv("ENV_FILE", ".env")
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres:postgres_secure_pwd@localhost:5432/tenderai"
+    #DATABASE_URL = "postgresql://postgres:postgres_secure_pwd@db:5432/tenderai"
+    DATABASE_URL = "postgresql://postgres:postgres_secure_pwd@localhost:5432/tenderai"
     REDIS_URL: str = "redis://localhost:6379/0"
 
     JWT_SECRET_KEY: str = "super_secure_jwt_token_secret_key_change_in_production_123456"
@@ -14,9 +15,9 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
-    GROK_API_KEY: str = ""
-    GROK_BASE_URL: str = "https://api.xai.com/v1"
-    GROK_MODEL: str = "grok-beta"
+    GROQ_API_KEY: str = ""
+    GROQ_BASE_URL: str = "https://api.xai.com/v1"
+    GROQ_MODEL: str = "GROQ-beta"
 
     UPLOAD_DIR: str = "/app/uploads"
 

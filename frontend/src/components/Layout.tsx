@@ -7,12 +7,17 @@ import {
   Bell, 
   Upload, 
   Sparkles,
-  User
+  User,
+  AlertTriangle,
+  AlertCircle,
+  Clock,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Notification } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedThemeToggler } from "@/registry/magicui/animated-theme-toggler";
-import Logo from './Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,6 +27,7 @@ interface LayoutProps {
   notifications: Notification[];
   onLogout: () => void;
   onMarkNotificationsRead: () => void;
+  onMarkNotificationRead?: (id: number) => void;
 }
 
 export default function Layout({ 
@@ -31,15 +37,24 @@ export default function Layout({
   currentUser, 
   notifications, 
   onLogout,
-  onMarkNotificationsRead
+  onMarkNotificationsRead,
+  onMarkNotificationRead
 }: LayoutProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [expandedNotifId, setExpandedNotifId] = useState<number | null>(null);
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);
     if (!showNotifications && unreadCount > 0) {
       onMarkNotificationsRead();
+    }
+  };
+
+  const handleItemClick = (n: Notification) => {
+    setExpandedNotifId(expandedNotifId === n.id ? null : n.id);
+    if (!n.is_read && onMarkNotificationRead) {
+      onMarkNotificationRead(n.id);
     }
   };
 
@@ -57,10 +72,15 @@ export default function Layout({
       <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between z-30 shrink-0 shadow-sm transition-colors duration-300">
         
         {/* Logo (Left) */}
-        <div className="flex items-center select-none shrink-0">
-          <Logo variant="header" className="h-10 w-auto" />
+        <div className="flex items-center space-x-3 select-none shrink-0">
+          <div className="w-10 h-10 bg-[#C9A84C] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-premium-glow">
+            🔮
+          </div>
+          <div>
+            <span className="font-display font-extrabold text-base tracking-tight text-slate-900 dark:text-white leading-none block">TenderLive</span>
+            <span className="block text-[10px] text-[#C9A84C] font-semibold tracking-widest uppercase mt-0.5">Enterprise AI</span>
+          </div>
         </div>
-
 
         {/* Capsule Navigation (Center) */}
         <div className="flex items-center bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-full p-1 shadow-inner relative shrink-0">
@@ -117,26 +137,158 @@ export default function Layout({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2.5 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden"
+                    className="absolute right-0 mt-2.5 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-premium p-4 z-50 overflow-hidden"
                   >
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">System Alerts</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider font-mono">System Alerts</span>
                       <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">{notifications.length} Total</span>
                     </div>
-                    <div className="max-h-60 overflow-y-auto space-y-2 pr-1 select-text">
+                    <div className="max-h-[360px] overflow-y-auto space-y-2.5 pr-1 select-text">
                       {notifications.length === 0 ? (
                         <span className="block text-center py-6 text-xs text-slate-400 dark:text-slate-500 font-medium">No active alerts</span>
                       ) : (
-                        notifications.map((n) => (
-                          <div key={n.id} className={`p-2.5 rounded-xl border text-xs leading-relaxed transition-all ${
-                            n.is_read ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400' : 'bg-[#C9A84C]/5 dark:bg-[#C9A84C]/10 border-[#C9A84C]/20 text-slate-800 dark:text-slate-200 font-medium'
-                          }`}>
-                            <p>{n.message}</p>
-                            <span className="block text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
-                              {new Date(n.created_at).toLocaleTimeString()}
-                            </span>
-                          </div>
-                        ))
+                        notifications.map((n) => {
+                          const isExpanded = expandedNotifId === n.id;
+                          const isCritical = n.priority === 'CRITICAL';
+                          
+                          // Determine colors based on priority / status / type
+                          let cardBorderColor = 'border-slate-200 dark:border-slate-800';
+                          let cardBgColor = 'bg-white dark:bg-slate-900';
+                          let iconColor = 'text-slate-500';
+                          let IconComponent = AlertCircle;
+
+                          if (isCritical) {
+                            cardBorderColor = 'border-rose-500 dark:border-rose-600';
+                            cardBgColor = 'bg-rose-50/20 dark:bg-rose-950/10';
+                            iconColor = 'text-rose-500';
+                            IconComponent = AlertTriangle;
+                          } else if (n.type === 'RISK_ALERT') {
+                            cardBorderColor = 'border-red-400 dark:border-red-900/50';
+                            cardBgColor = 'bg-red-50/10 dark:bg-red-950/5';
+                            iconColor = 'text-red-500';
+                            IconComponent = AlertTriangle;
+                          } else if (n.type === 'DEADLINE_ALERT') {
+                            cardBorderColor = 'border-blue-400 dark:border-blue-900/50';
+                            cardBgColor = 'bg-blue-50/10 dark:bg-blue-950/5';
+                            iconColor = 'text-blue-500';
+                            IconComponent = Clock;
+                          } else if (n.type === 'HIGH_MATCH') {
+                            cardBorderColor = 'border-emerald-400 dark:border-emerald-900/50';
+                            cardBgColor = 'bg-emerald-50/10 dark:bg-emerald-950/5';
+                            iconColor = 'text-emerald-500';
+                            IconComponent = Sparkles;
+                          } else if (n.type === 'MEDIUM_MATCH') {
+                            cardBorderColor = 'border-amber-400 dark:border-amber-900/50';
+                            cardBgColor = 'bg-amber-50/10 dark:bg-amber-950/5';
+                            iconColor = 'text-amber-500';
+                            IconComponent = AlertCircle;
+                          }
+
+                          // If read, mute the colors
+                          if (n.is_read) {
+                            cardBgColor = 'bg-slate-50/50 dark:bg-slate-800/20';
+                            cardBorderColor = 'border-slate-200 dark:border-slate-800';
+                            iconColor = 'text-slate-400 dark:text-slate-500';
+                          }
+
+                          return (
+                            <div 
+                              key={n.id} 
+                              onClick={() => handleItemClick(n)}
+                              className={`p-3 rounded-xl border text-[11px] leading-relaxed transition-all cursor-pointer relative shadow-sm hover:shadow-md ${cardBorderColor} ${cardBgColor} ${
+                                !n.is_read && isCritical ? 'shadow-[0_0_10px_rgba(244,63,94,0.22)] border-rose-500 dark:border-rose-400 animate-pulse' : ''
+                              }`}
+                            >
+                              {/* Header row with Icon, Title, Badge, Read dot, check button */}
+                              <div className="flex items-start justify-between space-x-2">
+                                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                  <IconComponent className={`w-3.5 h-3.5 shrink-0 ${iconColor}`} />
+                                  <span className={`font-bold truncate ${n.is_read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                                    {n.title || "Tender Alert"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-1.5 shrink-0">
+                                  {/* Priority Badge */}
+                                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider select-none ${
+                                    isCritical 
+                                      ? 'bg-rose-500 text-white' 
+                                      : n.priority === 'HIGH' 
+                                        ? 'bg-red-500 text-white' 
+                                        : n.priority === 'MEDIUM' 
+                                          ? 'bg-[#C9A84C] text-white' 
+                                          : 'bg-slate-400 text-white'
+                                  }`}>
+                                    {n.priority}
+                                  </span>
+                                  {/* Mark Read button */}
+                                  {!n.is_read && (
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onMarkNotificationRead) onMarkNotificationRead(n.id);
+                                      }}
+                                      className="p-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-950 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-450"
+                                      title="Mark as read"
+                                    >
+                                      <CheckCircle className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                                </div>
+                              </div>
+
+                              {/* Message snippet/full */}
+                              <p className={`mt-1.5 text-slate-650 dark:text-slate-350 ${isExpanded ? '' : 'line-clamp-2 text-slate-500'}`}>
+                                {n.message}
+                              </p>
+
+                              {/* Expandable details */}
+                              {isExpanded && (
+                                <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                                  {/* Evidence block */}
+                                  {n.metadata?.evidence && n.metadata.evidence.length > 0 && (
+                                    <div className="bg-slate-50 dark:bg-slate-950/60 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                                      <span className="font-bold text-[10px] text-slate-500 dark:text-slate-450 block mb-1 uppercase tracking-wider font-mono">
+                                        📋 Deterministic Evidence
+                                      </span>
+                                      <ul className="list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-300 text-[10.5px]">
+                                        {n.metadata.evidence.map((ev, i) => (
+                                          <li key={i}>{ev}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {/* AI summaries */}
+                                  {n.metadata && (
+                                    <div className="space-y-1.5 text-[10.5px] text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-950/20 p-2 rounded-lg border border-slate-100 dark:border-slate-850">
+                                      {n.metadata.why_this_tender_matches && (
+                                        <div>
+                                          <strong className="text-slate-600 dark:text-slate-350">Why it matches:</strong> {n.metadata.why_this_tender_matches}
+                                        </div>
+                                      )}
+                                      {n.metadata.recommended_action && (
+                                        <div>
+                                          <strong className="text-slate-600 dark:text-slate-350">Recommendation:</strong> {n.metadata.recommended_action}
+                                        </div>
+                                      )}
+                                      {n.metadata.risk_summary && (
+                                        <div>
+                                          <strong className="text-slate-600 dark:text-slate-350 text-rose-500 dark:text-rose-400">Risk summary:</strong> {n.metadata.risk_summary}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Timestamp */}
+                              <span className="block text-[8.5px] text-slate-400 dark:text-slate-500 mt-1 font-mono">
+                                {new Date(n.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </motion.div>

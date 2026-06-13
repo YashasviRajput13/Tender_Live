@@ -40,6 +40,12 @@ class SummaryAgent:
                 "submission_deadline": "{tender_details.get('deadline') or 'Not specified'}",
                 "clarification_deadline": "Clarification end date or 'Not specified'"
             }},
+            "financial_info": {{
+                "emd": "Extracted EMD amount or 'Not specified'",
+                "tender_fee": "Extracted Tender Fee or 'Not specified'",
+                "performance_security": "Extracted Performance Security or 'Not specified'",
+                "bid_validity": "Extracted Bid Validity or 'Not specified'"
+            }},
             "submission_checklist": [
                 "Ex: Valid GST Registration Certificate",
                 "Ex: Audited Financial balance sheets of last 3 years",
@@ -63,6 +69,12 @@ class SummaryAgent:
                     "pre_bid_meeting": "None scheduled",
                     "submission_deadline": str(tender_details.get("deadline") or "Not specified"),
                     "clarification_deadline": "Not specified"
+                },
+                "financial_info": {
+                    "emd": "Not specified",
+                    "tender_fee": "Not specified",
+                    "performance_security": "Not specified",
+                    "bid_validity": "Not specified"
                 },
                 "submission_checklist": [
                     "General bid documents",

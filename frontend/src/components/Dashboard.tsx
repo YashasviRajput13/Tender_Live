@@ -131,34 +131,110 @@ export default function Dashboard({
     return daysLeft > 0 && daysLeft <= 15;
   }).length;
 
-  const averageOpportunityScore = activeTendersCount > 0 
-    ? Math.round(tenders.reduce((acc, t) => acc + (t.opportunity_score || 75), 0) / activeTendersCount) 
-    : 78;
+  // 1. Average Opportunity Score (Dynamic, no fallbacks)
+  const analyzedTenders = tenders.filter(t => t.opportunity_score !== undefined && t.opportunity_score !== null);
+  const averageOpportunityScore = analyzedTenders.length > 0 
+    ? Math.round(analyzedTenders.reduce((acc, t) => acc + (t.opportunity_score as number), 0) / analyzedTenders.length) 
+    : 0;
 
   // Get latest discovered tenders
   const latestTenders = tenders.slice(0, 4);
 
-  // Line Chart Data
-  const lineChartData = [
-    { date: 'May 26', score: 65 },
-    { date: 'May 27', score: 74 },
-    { date: 'May 28', score: 81 },
-    { date: 'May 29', score: 89 },
-    { date: 'May 30', score: 95 },
-  ];
+  // 2. Line Chart Data (Historical Suitability) - Computed from last 5 days
+  const today = new Date();
+  const last5Days = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (4 - i));
+    return d;
+  });
 
-  // Bar Chart Data (Progressive ranking cards instead)
+  const lineChartData = last5Days.map((date, i) => {
+    const dayStart = new Date(date.setHours(0,0,0,0)).getTime();
+    const dayEnd = new Date(date.setHours(23,59,59,999)).getTime();
+    
+    const dayTenders = analyzedTenders.filter(t => {
+      const tTime = new Date(t.created_at).getTime();
+      return tTime >= dayStart && tTime <= dayEnd;
+    });
+    
+    const dayAvg = dayTenders.length > 0 
+      ? Math.round(dayTenders.reduce((acc, t) => acc + (t.opportunity_score as number), 0) / dayTenders.length)
+      : 0;
+      
+    // x range 50 to 550, y range 130 to 25 (inverted, 130 is 0%, 25 is 100%)
+    const xPos = 50 + (i * 125); 
+    const yPos = 130 - ((dayAvg / 100) * 105); 
+    
+    const month = date.toLocaleString('default', { month: 'short' });
+    const day = date.getDate();
+    return { 
+      date: `${month} ${day}${i === 4 ? ' (Today)' : ''}`, 
+      score: dayAvg, 
+      x: xPos, 
+      y: yPos 
+    };
+  });
+
+  // 3. Bar Chart Data (Dynamic Source Counts)
+  const gemCount = tenders.filter(t => t.source_name === 'GeM').length;
+  const cpppCount = tenders.filter(t => t.source_name === 'CPPP').length;
+  const otherCount = activeTendersCount - (gemCount + cpppCount);
+  
   const barChartData = [
-    { label: 'GeM Portal', value: tenders.filter(t => t.source_name === 'GeM').length || 18, percentage: 40, color: 'bg-gradient-to-r from-amber-500 to-[#C9A84C]', text: 'text-[#C9A84C]', bg: 'bg-[#C9A84C]', glow: 'shadow-[0_0_15px_rgba(201,168,76,0.25)]', trend: '+12% this week', isUp: true },
-    { label: 'CPPP Portal', value: tenders.filter(t => t.source_name === 'CPPP').length || 26, percentage: 55, color: 'bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800', text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-500', glow: '', trend: '+18% this week', isUp: true },
-    { label: 'Others', value: tenders.filter(t => !['GeM', 'CPPP'].includes(t.source_name)).length || 4, percentage: 10, color: 'bg-gradient-to-r from-slate-400 to-slate-500', text: 'text-slate-400', bg: 'bg-slate-400', glow: '', trend: '-2% this week', isUp: false }
+    { 
+      label: 'GeM Portal', 
+      value: gemCount, 
+      percentage: activeTendersCount ? Math.round((gemCount / activeTendersCount) * 100) : 0, 
+      color: 'bg-gradient-to-r from-amber-500 to-[#C9A84C]', 
+      text: 'text-[#C9A84C]', 
+      bg: 'bg-[#C9A84C]', 
+      glow: 'shadow-[0_0_15px_rgba(201,168,76,0.25)]', 
+      trend: '+12% this week', 
+      isUp: true 
+    },
+    { 
+      label: 'CPPP Portal', 
+      value: cpppCount, 
+      percentage: activeTendersCount ? Math.round((cpppCount / activeTendersCount) * 100) : 0, 
+      color: 'bg-gradient-to-r from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800', 
+      text: 'text-slate-600 dark:text-slate-400', 
+      bg: 'bg-slate-500', 
+      glow: '', 
+      trend: '+18% this week', 
+      isUp: true 
+    },
+    { 
+      label: 'Others', 
+      value: otherCount, 
+      percentage: activeTendersCount ? Math.round((otherCount / activeTendersCount) * 100) : 0, 
+      color: 'bg-gradient-to-r from-slate-400 to-slate-500', 
+      text: 'text-slate-400', 
+      bg: 'bg-slate-400', 
+      glow: '', 
+      trend: '-2% this week', 
+      isUp: false 
+    }
   ];
 
-  // Donut Chart Data
+  // 4. Donut Chart Data (Dynamic Eligibility)
+  const highlyEligible = tenders.filter(t => t.eligibility === 'eligible').length;
+  const partiallyEligible = tenders.filter(t => t.eligibility === 'partially_eligible').length;
+  const notEligible = tenders.filter(t => t.eligibility === 'not_eligible').length;
+  const analyzedCount = highlyEligible + partiallyEligible + notEligible;
+
+  const highlyPct = analyzedCount ? Math.round((highlyEligible / analyzedCount) * 100) : 0;
+  const partialPct = analyzedCount ? Math.round((partiallyEligible / analyzedCount) * 100) : 0;
+  const notPct = analyzedCount ? Math.round((notEligible / analyzedCount) * 100) : 0;
+
+  // Use precise floating point mathematics for rendering SVGs to avoid gaps
+  const highlyFloat = analyzedCount ? (highlyEligible / analyzedCount) * 100 : 0;
+  const partialFloat = analyzedCount ? (partiallyEligible / analyzedCount) * 100 : 0;
+  const notFloat = analyzedCount ? (notEligible / analyzedCount) * 100 : 0;
+
   const donutChartData = [
-    { label: 'Highly Eligible', percentage: 65, color: '#C9A84C', bg: 'bg-[#C9A84C]' },
-    { label: 'Partially Eligible', percentage: 25, color: '#64748B', bg: 'bg-slate-500' },
-    { label: 'Not Eligible', percentage: 10, color: '#94A3B8', bg: 'bg-slate-400' }
+    { label: 'Highly Eligible', percentage: highlyPct, color: '#C9A84C', bg: 'bg-[#C9A84C]' },
+    { label: 'Partially Eligible', percentage: partialPct, color: '#64748B', bg: 'bg-slate-500' },
+    { label: 'Not Eligible', percentage: notPct, color: '#94A3B8', bg: 'bg-slate-400' }
   ];
 
   return (
@@ -193,7 +269,7 @@ export default function Dashboard({
           },
           { 
             title: 'Avg Match Rating', 
-            val: `${averageOpportunityScore}%`, 
+            val: averageOpportunityScore > 0 ? `${averageOpportunityScore}%` : 'N/A', 
             desc: 'Company suitability average', 
             icon: Award,
             iconBg: 'bg-[#C9A84C]/10 border-[#C9A84C]/25 text-[#C9A84C]',
@@ -448,9 +524,9 @@ export default function Dashboard({
                   {hoveredDonutIndex !== null ? donutChartData[hoveredDonutIndex].label.split(' ')[0] : 'ELIGIBLE'}
                 </span>
                 <span className="text-2xl font-display font-black text-slate-800 dark:text-white mt-0.5 leading-none">
-                  {hoveredDonutIndex !== null ? `${donutChartData[hoveredDonutIndex].percentage}%` : '90%'}
+                  {hoveredDonutIndex !== null ? `${donutChartData[hoveredDonutIndex].percentage}%` : `${highlyPct + partialPct}%`}
                 </span>
-                <span className="text-[9px] text-slate-400 dark:text-slate-550 font-mono tracking-widest uppercase mt-0.5">
+                <span className="text-[9px] text-slate-400 dark:text-slate-555 font-mono tracking-widest uppercase mt-0.5">
                   {hoveredDonutIndex !== null ? 'SHARE' : 'TOTAL RATE'}
                 </span>
               </div>

@@ -1,11 +1,12 @@
 import json
 import logging
 try:
-    import google.generativeai as genai
+    from google import genai
 except ImportError:
     genai = None  # Gemini not installed; will be unavailable
 from openai import OpenAI
 from config import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,9 @@ if settings.OPENAI_API_KEY:
 
 # Initialize Groq client if Groq API key is present
 groq_client = None
-if settings.GROK_API_KEY:
+if settings.GROQ_API_KEY:
     try:
-        groq_client = OpenAI(api_key=settings.GROK_API_KEY, base_url=settings.GROK_BASE_URL)
+        groq_client = OpenAI(api_key=settings.GROQ_API_KEY, base_url=settings.GROQ_BASE_URL)
         logger.info("Groq API client initialized.")
     except Exception as e:
         logger.error(f"Failed to initialize Groq client: {str(e)}")
@@ -69,7 +70,7 @@ def query_openai(prompt: str, json_mode: bool = False, temperature: float = 0.2)
     
     # Choose model based on which client is active
     if groq_client:
-        model_name = settings.GROK_MODEL
+        model_name = settings.GROQ_MODEL
     else:
         model_name = "gpt-4o-mini"
     
@@ -98,7 +99,7 @@ def ask_llm(prompt: str, json_mode: bool = False, temperature: float = 0.2) -> s
             logger.error(f"Gemini query failed: {str(e)}. Attempting Groq fallback...")
             
     # 2. Try Groq fallback
-    if settings.GROK_API_KEY and groq_client:
+    if settings.GROQ_API_KEY and groq_client:
         try:
             logger.info("Directing request to Groq API (fallback)...")
             return query_openai(prompt, json_mode, temperature)
@@ -114,4 +115,4 @@ def ask_llm(prompt: str, json_mode: bool = False, temperature: float = 0.2) -> s
             logger.error(f"OpenAI fallback query also failed: {str(e)}")
             
     # 4. All options exhausted
-    raise ValueError("No active AI keys configured. Please add GROK_API_KEY or other LLM keys to your env settings.")
+    raise ValueError("No active AI keys configured. Please add GROQ_API_KEY or other LLM keys to your env settings.")
