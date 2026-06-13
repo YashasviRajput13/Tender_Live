@@ -318,6 +318,8 @@ export default function TenderDetails({
             </div>
           )}
 
+        </div>
+
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
         {eligibilityReport && (
           <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col gap-3 shrink-0">

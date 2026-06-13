@@ -245,7 +245,7 @@ export default function Dashboard({
         {[
           { 
             title: 'Tenders Discovered', 
-            val: activeTendersCount, 
+            val: String(activeTendersCount), 
             desc: 'Real-time portal index', 
             icon: Briefcase,
             iconBg: 'bg-[#C9A84C]/10 border-[#C9A84C]/25 text-[#C9A84C]',
@@ -253,7 +253,7 @@ export default function Dashboard({
           },
           { 
             title: 'Running AI Agents', 
-            val: activeTasksCount, 
+            val: String(activeTasksCount), 
             desc: 'Background Celery workers', 
             icon: Zap,
             iconBg: 'bg-[#C9A84C]/10 border-[#C9A84C]/25 text-[#C9A84C]',
@@ -261,7 +261,7 @@ export default function Dashboard({
           },
           { 
             title: 'Critical Deadlines', 
-            val: upcomingDeadlinesCount, 
+            val: String(upcomingDeadlinesCount), 
             desc: 'Closing within 15 days', 
             icon: Calendar,
             iconBg: 'bg-[#C9A84C]/10 border-[#C9A84C]/25 text-[#C9A84C]',
