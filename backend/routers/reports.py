@@ -9,6 +9,7 @@ import models, schemas, auth
 from database import get_db
 from config import settings
 from workers.report_gen import generate_reports
+from services.evaluation_report_pdf import generate_evaluation_report
 
 logger = logging.getLogger(__name__)
 
@@ -94,4 +95,48 @@ def download_report_file(
         file_path,
         media_type=media_type,
         filename=file_name
+    )
+
+@router.get("/evaluation/{tender_id}")
+def download_evaluation_report(
+    tender_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Download a detailed Evaluation Criteria Report (10 pages) for a specific tender.
+    """
+    tender = db.query(models.Tender).filter(models.Tender.id == tender_id).first()
+    if not tender:
+        raise HTTPException(status_code=404, detail="Tender not found")
+
+    company = db.query(models.Company).filter(models.Company.user_id == current_user.id).first()
+    if not company:
+        raise HTTPException(
+            status_code=400,
+            detail="Company Profile not found. Please create one to generate reports."
+        )
+
+    report = db.query(models.EligibilityReport).filter(
+        models.EligibilityReport.tender_id == tender.id,
+        models.EligibilityReport.company_id == company.id
+    ).first()
+
+    # Even if report is None, we generate the PDF with calculated fallback defaults
+    safe_tender_id = tender.tender_id.replace('/', '_')
+    file_name = f"TenderLive_Evaluation_Report_{safe_tender_id}.pdf"
+    file_path = os.path.join(settings.UPLOAD_DIR, file_name)
+
+    # Generate the PDF
+    try:
+        generate_evaluation_report(tender, company, report, file_path)
+    except Exception as e:
+        logger.error(f"Error generating evaluation report: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate the evaluation report.")
+
+    return FileResponse(
+        file_path,
+        media_type="application/pdf",
+        filename=file_name,
+        headers={"Content-Disposition": f'attachment; filename="{file_name}"'}
     )

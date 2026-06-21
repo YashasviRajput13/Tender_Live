@@ -8,7 +8,8 @@ import {
   Award,
   Cpu,
   CheckCircle2,
-  XCircle
+  XCircle,
+  BarChart3
 } from 'lucide-react';
 import { Tender, EligibilityReport } from '../types';
 import { API_BASE_URL } from '../api';
@@ -91,6 +92,25 @@ export default function TenderDetails({
         const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = `Tender_Summary_${tender.tender_id.replace(/\//g, '_')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+      } else if (format === 'evaluation') {
+        const token = localStorage.getItem('token');
+        const url = `${API_BASE_URL}/api/reports/evaluation/${tender.id}`;
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `TenderLive_Evaluation_Report_${tender.tender_id.replace(/\//g, '_')}.pdf`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -328,25 +348,38 @@ export default function TenderDetails({
                 {downloadError}
               </span>
             )}
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleDownload('pdf')}
+                  disabled={downloadingFormat !== null}
+                  className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="w-4 h-4 text-[#C9A84C]" />
+                  <span>
+                    {downloadingFormat === 'pdf' ? 'Generating Briefing...' : 'Download Briefing (PDF)'}
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleDownload('excel')}
+                  disabled={downloadingFormat !== null}
+                  className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="w-4 h-4 text-[#C9A84C]" />
+                  <span>
+                    {downloadingFormat === 'excel' ? 'Exporting...' : 'Download Catalog (XLSX)'}
+                  </span>
+                </button>
+              </div>
+              
               <button
-                onClick={() => handleDownload('pdf')}
+                onClick={() => handleDownload('evaluation')}
                 disabled={downloadingFormat !== null}
-                className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-700 text-white font-extrabold text-sm hover:shadow-lg hover:shadow-[#C9A84C]/20 border border-[#C9A84C]/20 transition-all flex items-center justify-center space-x-2.5 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
-                <Download className="w-4 h-4 text-[#C9A84C]" />
+                <BarChart3 className="w-4 h-4 text-[#C9A84C] group-hover:scale-110 transition-transform" />
                 <span>
-                  {downloadingFormat === 'pdf' ? 'Generating Tender Briefing...' : 'Download Briefing (PDF)'}
-                </span>
-              </button>
-              <button
-                onClick={() => handleDownload('excel')}
-                disabled={downloadingFormat !== null}
-                className="flex-1 py-3 px-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-extrabold text-sm hover:border-[#C9A84C] hover:text-[#C9A84C] transition-all flex items-center justify-center space-x-2.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download className="w-4 h-4 text-[#C9A84C]" />
-                <span>
-                  {downloadingFormat === 'excel' ? 'Exporting...' : 'Download Catalog (XLSX)'}
+                  {downloadingFormat === 'evaluation' ? 'Generating 10-Page Evaluation Report...' : '📊 Download Evaluation Report (PDF)'}
                 </span>
               </button>
             </div>
