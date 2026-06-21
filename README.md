@@ -1,154 +1,435 @@
-# 🚀 Tender Live
+#  Tender Live
 
 <div align="center">
 
-### 🤖 Agentic Tender Discovery & Intelligence Platform
-
-<img src="https://readme-typing-svg.demolab.com?font=Inter&weight=700&size=24&duration=3000&pause=1000&color=F5B841&center=true&vCenter=true&width=800&lines=AI-Powered+Tender+Intelligence;Multi-Agent+Procurement+Platform;From+Tender+Discovery+to+Tender+Intelligence" />
+<img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=700&size=28&duration=3000&pause=1000&color=F5B841&center=true&vCenter=true&width=1000&lines=Agentic+Tender+Discovery+Platform;AI-Powered+Procurement+Intelligence;Multi-Agent+Tender+Analysis;Transforming+Tender+Discovery+into+Tender+Intelligence" />
 
 <br>
 
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-Agentic%20AI-blue?style=for-the-badge)
-![Backend](https://img.shields.io/badge/FastAPI-Python-green?style=for-the-badge)
-![Database](https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge)
+![Stars](https://img.shields.io/github/stars/yourusername/tender-live?style=for-the-badge)
+![Forks](https://img.shields.io/github/forks/yourusername/tender-live?style=for-the-badge)
+![Issues](https://img.shields.io/github/issues/yourusername/tender-live?style=for-the-badge)
+![License](https://img.shields.io/github/license/yourusername/tender-live?style=for-the-badge)
+
+<br>
+
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge\&logo=fastapi)
+![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge\&logo=react)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge\&logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-Queue-DC382D?style=for-the-badge\&logo=redis)
+![Celery](https://img.shields.io/badge/Celery-Workers-37814A?style=for-the-badge)
+![Gemini](https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge)
 
 </div>
 
 ---
 
-## ⚡ Problem
+# 🌍 Why Tender Live?
 
-```mermaid
-flowchart LR
-A[Government Portals] --> B[Hundreds of Tenders]
-B --> C[Manual Search]
-C --> D[Large PDF Documents]
-D --> E[Missed Opportunities]
-```
+### Imagine this...
 
----
+You receive a **150-page government tender document**.
 
-## 🚀 Solution
+Now answer these questions within 5 minutes:
 
-Tender Live converts:
+✅ What is the eligibility criteria?
 
-```text
-Raw Tender Documents
-          ↓
-     AI Analysis
-          ↓
- Business Intelligence
-          ↓
- Better Decisions
-```
+✅ What is the submission deadline?
+
+✅ What documents are required?
+
+✅ What are the technical requirements?
+
+✅ What are the risks?
+
+Most people would spend hours finding these answers.
+
+Tender Live does it in seconds.
 
 ---
 
-# 🤖 AI Agent Workforce
+# 🎯 Problem Statement
+
+Government procurement opportunities are scattered across multiple portals.
+
+Businesses face:
+
+🔴 Information Overload
+
+🔴 Manual Document Analysis
+
+🔴 Missed Deadlines
+
+🔴 Complex Eligibility Verification
+
+🔴 Hundreds of Pages of Documentation
+
+🔴 Lost Opportunities
+
+---
+
+# 🚀 Our Solution
+
+Tender Live combines:
+
+* Agentic AI
+* Document Intelligence
+* Real-Time Tender Discovery
+* LLM-Powered Analysis
+* Eligibility Intelligence
+
+to automatically transform raw procurement data into actionable business insights.
+
+---
+
+# 🤖 AI Workforce
+
+Tender Live is powered by multiple intelligent agents.
 
 ```mermaid
 flowchart LR
+
 A[Discovery Agent] --> B[Document Intelligence Agent]
 B --> C[Information Extraction Agent]
 C --> D[Eligibility Agent]
-D --> E[Summary Agent]
+D --> E[Summary & Insight Agent]
 E --> F[Dashboard]
 ```
 
-### 🔍 Discovery Agent
+---
 
-Finds tenders automatically.
+## 🔍 Discovery Agent
 
-### 📄 Document Intelligence Agent
+### Responsibility
 
-Reads and understands tender documents.
+* Discover tenders
+* Monitor procurement portals
+* Trigger workflows
 
-### 📊 Information Extraction Agent
+### Output
 
-Extracts eligibility, budget, deadlines.
-
-### ✅ Eligibility Agent
-
-Evaluates company qualification.
-
-### 💡 Summary Agent
-
-Generates insights and recommendations.
+```text
+Tender Metadata
+Tender Links
+Tender Documents
+```
 
 ---
 
-# 🏗 Architecture
+## 📄 Document Intelligence Agent
+
+### Responsibility
+
+* Read PDFs
+* Extract text
+* Understand structure
+
+### Capabilities
+
+* Layout Analysis
+* Document Understanding
+* Context Detection
+
+---
+
+## 🏷 Information Extraction Agent
+
+### Extracts
+
+* Tender Title
+* Budget
+* Deadlines
+* Department Details
+* Required Documents
+* Eligibility Requirements
+
+---
+
+## ✅ Eligibility Agent
+
+### Evaluates
+
+Company Profile
+VS
+Tender Requirements
+
+### Generates
+
+* Match Score
+* Qualification Status
+* Risk Indicators
+
+---
+
+## 📈 Summary Agent
+
+### Generates
+
+* Executive Summaries
+* Key Insights
+* Risk Assessment
+* AI Recommendations
+
+---
+
+# ⚡ End-to-End Workflow
+
+```mermaid
+flowchart TD
+
+A[Tender Portal / Manual Upload]
+--> B[Discovery Agent]
+
+B --> C[Document Intelligence]
+
+C --> D[Information Extraction]
+
+D --> E[Eligibility Analysis]
+
+E --> F[Summary Generation]
+
+F --> G[Tender Intelligence Dashboard]
+```
+
+---
+
+# 🏗 System Architecture
 
 ```mermaid
 flowchart TD
 
 U[User]
-F[React Frontend]
-API[FastAPI]
-R[Redis]
-C[Celery]
-DB[PostgreSQL]
-AI[Gemini AI]
 
-U --> F
-F --> API
-API --> R
-R --> C
-C --> AI
-C --> DB
+FE[React Frontend]
+
+API[FastAPI]
+
+REDIS[Redis Queue]
+
+CELERY[Celery Workers]
+
+DB[(PostgreSQL)]
+
+LLM[Gemini AI]
+
+U --> FE
+
+FE --> API
+
+API --> REDIS
+
+REDIS --> CELERY
+
+CELERY --> LLM
+
+CELERY --> DB
+
 API --> DB
 ```
 
 ---
 
-# ⚡ Asynchronous AI Pipeline
+# ⚡ Scalable AI Processing
 
-```mermaid
-sequenceDiagram
+Traditional Architecture ❌
 
-User->>FastAPI: Upload Tender
-FastAPI->>Redis: Create Task
-FastAPI-->>User: Return Task ID
-Redis->>Celery: Queue Job
-Celery->>Gemini: Analyze Tender
-Gemini-->>Celery: Results
-Celery->>Database: Store Results
-Database-->>Frontend: Insights
+```text
+User
+ ↓
+API Request
+ ↓
+AI Processing
+ ↓
+Timeout
+```
+
+Tender Live Architecture ✅
+
+```text
+User
+ ↓
+FastAPI
+ ↓
+Task Created
+ ↓
+Task ID Generated
+ ↓
+Response Returned
+ ↓
+Redis Queue
+ ↓
+Celery Worker
+ ↓
+AI Processing
+```
+
+Benefits:
+
+✅ Non-blocking APIs
+
+✅ Better Scalability
+
+✅ Background Processing
+
+✅ Faster User Experience
+
+---
+
+# 🔥 Features
+
+## Tender Discovery
+
+* Automated Monitoring
+* Procurement Tracking
+* Opportunity Discovery
+
+## AI Document Intelligence
+
+* PDF Analysis
+* Text Extraction
+* Requirement Identification
+
+## Eligibility Intelligence
+
+* Company Matching
+* Qualification Analysis
+* Opportunity Scoring
+
+## AI Summaries
+
+* Executive Summary
+* Risk Assessment
+* Recommendations
+
+## Real-Time Updates
+
+* Live Processing
+* Streaming Events
+* Dashboard Refresh
+
+---
+
+# 🛠 Technology Stack
+
+## Frontend
+
+```yaml
+React
+TypeScript
+Tailwind CSS
+Vite
+```
+
+## Backend
+
+```yaml
+Python
+FastAPI
+SQLAlchemy
+JWT Authentication
+```
+
+## AI Engineering
+
+```yaml
+Google Gemini
+Prompt Engineering
+Agentic AI
+Document Intelligence
+Multi-Agent Systems
+```
+
+## Data Layer
+
+```yaml
+PostgreSQL
+Redis
+Celery
+```
+
+## Real-Time Layer
+
+```yaml
+Server Sent Events
+StreamingResponse
 ```
 
 ---
 
-# 🔥 Tech Stack
+# 📊 Project Statistics
 
-| Layer      | Technology         |
-| ---------- | ------------------ |
-| Frontend   | React + TypeScript |
-| Backend    | FastAPI            |
-| AI         | Gemini             |
-| Queue      | Redis              |
-| Workers    | Celery             |
-| Database   | PostgreSQL         |
-| Real-Time  | SSE                |
-| Deployment | Docker             |
+```text
+5 Specialized AI Agents
+
+100+ Tender Documents Analyzed
+
+500+ Pages Processed
+
+Real-Time Event Streaming
+
+Asynchronous AI Processing
+
+Multi-Agent Workflow Architecture
+```
 
 ---
 
-# 🎯 Features
+# 🚀 Future Roadmap
 
-✅ Multi-Agent AI Workflow
+### Phase 1
 
-✅ Tender Discovery
+* Live CPPP Integration
+* Live GeM Integration
 
-✅ Document Intelligence
+### Phase 2
 
-✅ Eligibility Evaluation
+* AI Bid Assistant
+* Tender Recommendation Engine
 
-✅ Real-Time Processing
+### Phase 3
 
-✅ AI Summaries
+* Predictive Procurement Analytics
+* Enterprise Intelligence Platform
 
-✅ Insight Generation
+### Phase 4
+
+* Autonomous Procurement Copilot
+
+---
+
+# 👩‍💻 Team
+
+## Yashasvi
+
+### AI Engineer & Agentic AI Developer
+
+Focused on:
+
+* Agentic AI Architecture
+* Multi-Agent Workflows
+* Document Intelligence
+* LLM Integration
+* Prompt Engineering
+* Eligibility Intelligence
+* AI Orchestration
+
+---
+
+# 🎖 Innovation
+
+Tender Live is not another tender listing platform.
+
+It is an **AI Procurement Intelligence System** capable of:
+
+✔ Understanding Documents
+
+✔ Extracting Information
+
+✔ Evaluating Eligibility
+
+✔ Generating Insights
+
+✔ Supporting Business Decisions
 
 ---
 
@@ -156,6 +437,8 @@ Database-->>Frontend: Insights
 
 ## 🚀 Tender Live
 
-### "Businesses should spend time winning tenders, not searching for them."
+### From Tender Discovery ➜ Tender Intelligence
+
+<img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=700&size=20&duration=3000&pause=1000&color=F5B841&center=true&vCenter=true&width=700&lines=Businesses+Should+Win+Tenders;Not+Spend+Hours+Searching+For+Them" />
 
 </div>
