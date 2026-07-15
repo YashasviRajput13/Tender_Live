@@ -323,7 +323,7 @@ export default function Dashboard({
           </div>
           
           <div className="h-[320px] w-full bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800/80 rounded-xl p-4 flex flex-col justify-between relative overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart
                 data={lineChartData}
                 margin={{ top: 20, right: 10, left: -25, bottom: 0 }}

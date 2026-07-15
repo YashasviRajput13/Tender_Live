@@ -5,16 +5,16 @@ from notifications.manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
-@shared_task(name="workers.notifications.send_notification_task")
 
+@shared_task(name="workers.notifications.send_notification_task")
 def send_notification_task(
     event_type: str,
     company_data: dict,
     tender_data: dict,
     eligibility_result: dict,
-    score_result: int
+    score_result: int,
 ):
-    
+
     logger.info("=" * 80)
     logger.info(f"NOTIFICATION TASK RECEIVED: {event_type}")
     logger.info("=" * 80)
@@ -30,7 +30,7 @@ def send_notification_task(
             company_data=company_data,
             tender_data=tender_data,
             eligibility_result=eligibility_result,
-            score_result=score_result
+            score_result=score_result,
         )
         return success
     except Exception as e:

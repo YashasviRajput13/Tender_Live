@@ -3,9 +3,11 @@ import uuid
 import shutil
 import logging
 import threading
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-import models, schemas, auth
+import models
+import schemas
+import auth
 from database import get_db
 from config import settings
 from workers.document import process_tender_document
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/documents", tags=["Document Analyzer"])
 
+
 @router.post("/analyze", response_model=schemas.AgentTaskOut)
 def upload_tender_document(
     title: str = Form(...),
@@ -24,7 +27,7 @@ def upload_tender_document(
     deadline: str = Form(...),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
+    current_user: models.User = Depends(auth.get_current_user),
 ):
     """
     Upload a tender PDF document, create a database tender record,
@@ -33,30 +36,28 @@ def upload_tender_document(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
-            detail="Unsupported file format. Only PDF files are supported."
+            detail="Unsupported file format. Only PDF files are supported.",
         )
 
     # 1. Save uploaded file to persistent storage directory
     file_id = str(uuid.uuid4())
     safe_filename = f"{file_id}_{file.filename}"
     saved_file_path = os.path.join(settings.UPLOAD_DIR, safe_filename)
-    
+
     try:
         with open(saved_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         logger.info(f"File uploaded successfully and saved at: {saved_file_path}")
     except Exception as e:
         logger.error(f"Failed to save uploaded file: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to save file: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     # 2. Create shell Tender record to map findings to
     # We populate basic identifiers; full details will be filled by the AI document agent.
     from datetime import datetime
+
     try:
-        parsed_deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+        parsed_deadline = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
     except Exception:
         parsed_deadline = None
 
@@ -67,7 +68,7 @@ def upload_tender_document(
         budget=budget,
         deadline=parsed_deadline,
         source_name="Manual Upload",
-        status="discovered"
+        status="discovered",
     )
     db.add(shell_tender)
     db.commit()
@@ -78,24 +79,34 @@ def upload_tender_document(
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(sse_manager.publish("dashboard_events", "tender_discovered", {
-                "id": shell_tender.id,
-                "title": shell_tender.title,
-                "tender_id": shell_tender.tender_id,
-                "department": shell_tender.department,
-                "budget": float(shell_tender.budget) if shell_tender.budget else None,
-                "deadline": shell_tender.deadline.isoformat() if shell_tender.deadline else None,
-                "source_name": shell_tender.source_name,
-                "status": shell_tender.status
-            }))
+            loop.run_until_complete(
+                sse_manager.publish(
+                    "dashboard_events",
+                    "tender_discovered",
+                    {
+                        "id": shell_tender.id,
+                        "title": shell_tender.title,
+                        "tender_id": shell_tender.tender_id,
+                        "department": shell_tender.department,
+                        "budget": float(shell_tender.budget)
+                        if shell_tender.budget
+                        else None,
+                        "deadline": shell_tender.deadline.isoformat()
+                        if shell_tender.deadline
+                        else None,
+                        "source_name": shell_tender.source_name,
+                        "status": shell_tender.status,
+                    },
+                )
+            )
         except Exception as e:
             logger.warning(f"Failed to send SSE for tender_added: {e}")
         finally:
             try:
                 loop.close()
-            except:
+            except Exception:
                 pass
-                
+
     threading.Thread(target=fire_sse, daemon=True).start()
 
     # 3. Create Celery task
@@ -105,7 +116,7 @@ def upload_tender_document(
         task_type="document_intel",
         status="pending",
         progress=0,
-        current_agent="document_intel"
+        current_agent="document_intel",
     )
     db.add(new_task)
     db.commit()
@@ -114,13 +125,17 @@ def upload_tender_document(
     # 4. Trigger Celery worker pipeline (with local thread fallback if Redis/Celery is unavailable)
     try:
         process_tender_document.delay(task_id, shell_tender.id, saved_file_path)
-        logger.info(f"Triggered background Document analysis task {task_id} for Tender {shell_tender.id}")
+        logger.info(
+            f"Triggered background Document analysis task {task_id} for Tender {shell_tender.id}"
+        )
     except Exception as celery_err:
-        logger.warning(f"Redis/Celery unavailable for document task, falling back to local thread execution: {str(celery_err)}")
+        logger.warning(
+            f"Redis/Celery unavailable for document task, falling back to local thread execution: {str(celery_err)}"
+        )
         threading.Thread(
             target=process_tender_document.run,
             args=(task_id, shell_tender.id, saved_file_path),
-            daemon=True
+            daemon=True,
         ).start()
         logger.info(f"Started local document analysis thread for Task ID: {task_id}")
 

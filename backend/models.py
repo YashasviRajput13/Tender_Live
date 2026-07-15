@@ -1,8 +1,20 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Numeric, JSON, Float
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Text,
+    Numeric,
+    JSON,
+    Float,
+)
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 from database import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -14,15 +26,21 @@ class User(Base):
     full_name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    companies = relationship("Company", back_populates="user", cascade="all, delete-orphan")
-    audit_logs = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
+    companies = relationship(
+        "Company", back_populates="user", cascade="all, delete-orphan"
+    )
+    audit_logs = relationship(
+        "AuditLog", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Company(Base):
     __tablename__ = "companies"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     name = Column(String, nullable=False)
     industry = Column(String, nullable=True)
     turnover = Column(Numeric(15, 2), nullable=True)  # in lakhs or currency equivalent
@@ -37,8 +55,12 @@ class Company(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="companies")
-    eligibility_reports = relationship("EligibilityReport", back_populates="company", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="company", cascade="all, delete-orphan")
+    eligibility_reports = relationship(
+        "EligibilityReport", back_populates="company", cascade="all, delete-orphan"
+    )
+    notifications = relationship(
+        "Notification", back_populates="company", cascade="all, delete-orphan"
+    )
 
 
 class TenderSource(Base):
@@ -71,16 +93,24 @@ class Tender(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     status = Column(String, default="discovered")  # discovered, processing, analyzed
 
-    documents = relationship("TenderDocument", back_populates="tender", cascade="all, delete-orphan")
-    eligibility_reports = relationship("EligibilityReport", back_populates="tender", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="tender", cascade="all, delete-orphan")
+    documents = relationship(
+        "TenderDocument", back_populates="tender", cascade="all, delete-orphan"
+    )
+    eligibility_reports = relationship(
+        "EligibilityReport", back_populates="tender", cascade="all, delete-orphan"
+    )
+    notifications = relationship(
+        "Notification", back_populates="tender", cascade="all, delete-orphan"
+    )
 
 
 class TenderDocument(Base):
     __tablename__ = "tender_documents"
 
     id = Column(Integer, primary_key=True, index=True)
-    tender_id = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False)
+    tender_id = Column(
+        Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False
+    )
     file_name = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
     doc_type = Column(String, nullable=True)  # PDF, XLSX, etc.
@@ -95,13 +125,19 @@ class EligibilityReport(Base):
     __tablename__ = "eligibility_reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    tender_id = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False)
-    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    
-    eligibility = Column(String, nullable=False)  # eligible, partially_eligible, not_eligible
+    tender_id = Column(
+        Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=False
+    )
+    company_id = Column(
+        Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+
+    eligibility = Column(
+        String, nullable=False
+    )  # eligible, partially_eligible, not_eligible
     confidence_score = Column(Float, default=0.0)
     opportunity_score = Column(Integer, default=0)  # 0 to 100
-    
+
     summary = Column(Text, nullable=True)
     requirements_analysis = Column(JSON, default=dict)
     risk_analysis = Column(JSON, default=dict)
@@ -121,7 +157,9 @@ class AgentTask(Base):
     status = Column(String, default="pending")  # pending, running, completed, failed
     progress = Column(Integer, default=0)  # 0 to 100
     log_messages = Column(JSON, default=list)  # list of log string dicts
-    current_agent = Column(String, nullable=True)  # scraper, document_intel, eligibility_agent, summary_agent, completed
+    current_agent = Column(
+        String, nullable=True
+    )  # scraper, document_intel, eligibility_agent, summary_agent, completed
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -130,10 +168,18 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    tender_id = Column(Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=True)
-    type = Column(String, nullable=False)  # HIGH_MATCH, MEDIUM_MATCH, RISK_ALERT, DEADLINE_ALERT
-    priority = Column(String, default="MEDIUM", nullable=False)  # LOW, MEDIUM, HIGH, CRITICAL
+    company_id = Column(
+        Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+    tender_id = Column(
+        Integer, ForeignKey("tenders.id", ondelete="CASCADE"), nullable=True
+    )
+    type = Column(
+        String, nullable=False
+    )  # HIGH_MATCH, MEDIUM_MATCH, RISK_ALERT, DEADLINE_ALERT
+    priority = Column(
+        String, default="MEDIUM", nullable=False
+    )  # LOW, MEDIUM, HIGH, CRITICAL
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
     notification_metadata = Column(JSON, default=dict, nullable=True)

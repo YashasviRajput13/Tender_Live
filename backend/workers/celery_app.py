@@ -2,17 +2,14 @@ import os
 import sys
 from celery import Celery
 from dotenv import load_dotenv
-load_dotenv() 
+
+load_dotenv()
 # Add current workspace directory to Python path to ensure module imports resolve correctly inside docker containers
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
-celery_instance = Celery(
-    "tenderai_workers",
-    broker=REDIS_URL,
-    backend=REDIS_URL
-)
+celery_instance = Celery("tenderai_workers", broker=REDIS_URL, backend=REDIS_URL)
 
 celery_instance.conf.update(
     task_serializer="json",
@@ -30,14 +27,16 @@ celery_instance.conf.update(
     },
     # Ensure tasks are acknowledged only after execution completes
     task_acks_late=True,
-    worker_prefetch_multiplier=1
+    worker_prefetch_multiplier=1,
 )
 
 # Autodiscover tasks from the workers package
-celery_instance.autodiscover_tasks([
-    "workers.discovery",
-    "workers.document",
-    "workers.eligibility",
-    "workers.report_gen",
-    "workers.notifications"
-])
+celery_instance.autodiscover_tasks(
+    [
+        "workers.discovery",
+        "workers.document",
+        "workers.eligibility",
+        "workers.report_gen",
+        "workers.notifications",
+    ]
+)

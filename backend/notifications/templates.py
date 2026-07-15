@@ -1,5 +1,6 @@
 from typing import Dict, Any, List
 
+
 def _get_base_template(color_theme: str, header_title: str, content_html: str) -> str:
     """
     Standard responsive base template wrapper with modern premium styling.
@@ -160,6 +161,7 @@ def _get_base_template(color_theme: str, header_title: str, content_html: str) -
 </html>
 """
 
+
 def render_high_match_email(
     company_name: str,
     tender: Dict[str, Any],
@@ -167,13 +169,13 @@ def render_high_match_email(
     eligibility_verdict: str,
     why_matches: str,
     recommended_action: str,
-    evidence: List[str]
+    evidence: List[str],
 ) -> str:
     color_theme = "linear-gradient(135deg, #10B981 0%, #059669 100%)"
     header_title = f"🚀 High-Match Opportunity Found ({score}/100)"
-    
+
     evidence_items = "".join(f"<li>{ev}</li>" for ev in evidence)
-    
+
     content = f"""
     <p>Dear {company_name} Team,</p>
     <p>We have detected a highly matching government tender opportunity that perfectly aligns with your company profile capabilities.</p>
@@ -181,29 +183,29 @@ def render_high_match_email(
     <div class="card card-green">
         <h3 class="card-title" style="color: #065F46;">🌟 Match Summary</h3>
         <p style="margin: 5px 0; font-size: 14px; color: #065F46;"><strong>Opportunity Suitability Score:</strong> {score}/100</p>
-        <p style="margin: 5px 0; font-size: 14px; color: #065F46;"><strong>Eligibility Verdict:</strong> {(eligibility_verdict or 'N/A').upper()}</p>
+        <p style="margin: 5px 0; font-size: 14px; color: #065F46;"><strong>Eligibility Verdict:</strong> {(eligibility_verdict or "N/A").upper()}</p>
     </div>
 
     <div class="section-title">Tender Details</div>
     <table class="meta-table">
         <tr>
             <td class="label">Tender Title</td>
-            <td class="value">{tender.get('title') or 'N/A'}</td>
+            <td class="value">{tender.get("title") or "N/A"}</td>
         </tr>
         <tr>
             <td class="label">Department</td>
-            <td class="value">{tender.get('department') or 'Not specified'}</td>
+            <td class="value">{tender.get("department") or "Not specified"}</td>
         </tr>
         <tr>
             <td class="label">Location</td>
-            <td class="value">{tender.get('location') or 'Not specified'}</td>
+            <td class="value">{tender.get("location") or "Not specified"}</td>
         </tr>
         <tr>
             <td class="label">Budget</td>
-            <td class="value">₹{f"{tender.get('budget'):,.2f}" if tender.get('budget') else 'Not specified'}</td>        </tr>
+            <td class="value">₹{f"{tender.get('budget'):,.2f}" if tender.get("budget") else "Not specified"}</td>        </tr>
         <tr>
             <td class="label">Deadline</td>
-            <td class="value">{tender.get('deadline') or 'Not specified'}</td>
+            <td class="value">{tender.get("deadline") or "Not specified"}</td>
         </tr>
     </table>
 
@@ -224,6 +226,7 @@ def render_high_match_email(
     """
     return _get_base_template(color_theme, header_title, content)
 
+
 def render_medium_match_email(
     company_name: str,
     tender: Dict[str, Any],
@@ -231,13 +234,13 @@ def render_medium_match_email(
     eligibility_verdict: str,
     why_matches: str,
     recommended_action: str,
-    evidence: List[str]
+    evidence: List[str],
 ) -> str:
     color_theme = "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
     header_title = f"📋 Tender Requires Review ({score}/100)"
-    
+
     evidence_items = "".join(f"<li>{ev}</li>" for ev in evidence)
-    
+
     content = f"""
     <p>Dear {company_name} Team,</p>
     <p>A new tender opportunity has been analyzed and classified as a moderate match, requiring manual bid review.</p>
@@ -245,26 +248,26 @@ def render_medium_match_email(
     <div class="card card-orange">
         <h3 class="card-title" style="color: #92400E;">🔍 Evaluation Stats</h3>
         <p style="margin: 5px 0; font-size: 14px; color: #92400E;"><strong>Opportunity Score:</strong> {score}/100</p>
-        <p style="margin: 5px 0; font-size: 14px; color: #92400E;"><strong>Eligibility Verdict:</strong> {(eligibility_verdict or 'N/A').upper()}</p>
+        <p style="margin: 5px 0; font-size: 14px; color: #92400E;"><strong>Eligibility Verdict:</strong> {(eligibility_verdict or "N/A").upper()}</p>
     </div>
 
     <div class="section-title">Tender Details</div>
     <table class="meta-table">
         <tr>
             <td class="label">Tender Title</td>
-            <td class="value">{tender.get('title') or 'N/A'}</td>
+            <td class="value">{tender.get("title") or "N/A"}</td>
         </tr>
         <tr>
             <td class="label">Department</td>
-            <td class="value">{tender.get('department') or 'Not specified'}</td>
+            <td class="value">{tender.get("department") or "Not specified"}</td>
         </tr>
         <tr>
             <td class="label">Budget</td>
-            <td class="value">₹{tender.get('budget'):,.2f}</td>
+            <td class="value">₹{tender.get("budget"):,.2f}</td>
         </tr>
         <tr>
             <td class="label">Deadline</td>
-            <td class="value">{tender.get('deadline') or 'Not specified'}</td>
+            <td class="value">{tender.get("deadline") or "Not specified"}</td>
         </tr>
     </table>
 
@@ -285,26 +288,33 @@ def render_medium_match_email(
     """
     return _get_base_template(color_theme, header_title, content)
 
+
 def render_risk_email(
     company_name: str,
     tender: Dict[str, Any],
     priority: str,
     risk_summary: str,
     recommended_mitigation: str,
-    evidence: List[str]
+    evidence: List[str],
 ) -> str:
     # Use dark red gradient for CRITICAL risk
     is_critical = priority.upper() == "CRITICAL"
-    color_theme = "linear-gradient(135deg, #7F1D1D 0%, #EF4444 100%)" if is_critical else "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)"
-    header_title = f"🚨 CRITICAL Tender Risk Alert" if is_critical else "🚨 Tender Risk Alert"
-    
+    color_theme = (
+        "linear-gradient(135deg, #7F1D1D 0%, #EF4444 100%)"
+        if is_critical
+        else "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)"
+    )
+    header_title = (
+        "🚨 CRITICAL Tender Risk Alert" if is_critical else "🚨 Tender Risk Alert"
+    )
+
     evidence_items = "".join(f"<li>{ev}</li>" for ev in evidence)
-    
+
     content = f"""
     <p>Dear {company_name} Team,</p>
     <p>Our intelligent analyzer has detected significant eligibility, financial, or compliance risks for the following tender.</p>
     
-    <div class="card card-red" style="border-width: { '2px' if is_critical else '1px' };">
+    <div class="card card-red" style="border-width: {"2px" if is_critical else "1px"};">
         <h3 class="card-title" style="color: #991B1B;">⚠️ Risk Level: {priority.upper()}</h3>
         <p style="margin: 5px 0; font-size: 14.5px; color: #991B1B;"><strong>Critical gaps were identified in your profile match. Pursuing this tender might result in technical disqualification without mitigation.</strong></p>
     </div>
@@ -313,15 +323,15 @@ def render_risk_email(
     <table class="meta-table">
         <tr>
             <td class="label">Tender Title</td>
-            <td class="value">{tender.get('title') or 'N/A'}</td>
+            <td class="value">{tender.get("title") or "N/A"}</td>
         </tr>
         <tr>
             <td class="label">Department</td>
-            <td class="value">{tender.get('department') or 'Not specified'}</td>
+            <td class="value">{tender.get("department") or "Not specified"}</td>
         </tr>
         <tr>
             <td class="label">Budget</td>
-            <td class="value">₹{tender.get('budget'):,.2f}</td>
+            <td class="value">₹{tender.get("budget"):,.2f}</td>
         </tr>
     </table>
 
@@ -342,17 +352,18 @@ def render_risk_email(
     """
     return _get_base_template(color_theme, header_title, content)
 
+
 def render_deadline_email(
     company_name: str,
     tender: Dict[str, Any],
     days_remaining: int,
-    submission_checklist: List[str]
+    submission_checklist: List[str],
 ) -> str:
     color_theme = "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)"
     header_title = f"⏰ Tender Deadline Approaching ({days_remaining} Days Left)"
-    
+
     checklist_items = "".join(f"<li>{item}</li>" for item in submission_checklist[:6])
-    
+
     content = f"""
     <p>Dear {company_name} Team,</p>
     <p>This is a high-priority reminder that the submission window for the following tender is closing shortly.</p>
@@ -360,18 +371,18 @@ def render_deadline_email(
     <div class="card card-blue">
         <h3 class="card-title" style="color: #1E40AF;">⏳ Time Remaining</h3>
         <p style="margin: 5px 0; font-size: 16px; color: #1E40AF; font-weight: bold;">{days_remaining} calendar days left to submit response.</p>
-        <p style="margin: 5px 0; font-size: 13px; color: #1E40AF;">Submission deadline: {tender.get('deadline')}</p>
+        <p style="margin: 5px 0; font-size: 13px; color: #1E40AF;">Submission deadline: {tender.get("deadline")}</p>
     </div>
 
     <div class="section-title">Tender Details</div>
     <table class="meta-table">
         <tr>
             <td class="label">Tender Title</td>
-            <td class="value">{tender.get('title') or 'N/A'}</td>
+            <td class="value">{tender.get("title") or "N/A"}</td>
         </tr>
         <tr>
             <td class="label">Department</td>
-            <td class="value">{tender.get('department') or 'Not specified'}</td>
+            <td class="value">{tender.get("department") or "Not specified"}</td>
         </tr>
     </table>
 

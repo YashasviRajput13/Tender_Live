@@ -12,11 +12,14 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Edge/122.0.0.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Edge/122.0.0.0",
 ]
 
+
 class BaseScraper(ABC):
-    def __init__(self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None
+    ):
         self.use_proxy = use_proxy
         self.proxies = proxies or {}
         self.session = requests.Session()
@@ -35,10 +38,12 @@ class BaseScraper(ABC):
             "Sec-Fetch-Dest": "document",
             "Sec-Fetch-Mode": "navigate",
             "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1"
+            "Sec-Fetch-User": "?1",
         }
 
-    def fetch_page_content(self, url: str, retries: int = 3, backoff: float = 2.0) -> Optional[str]:
+    def fetch_page_content(
+        self, url: str, retries: int = 3, backoff: float = 2.0
+    ) -> Optional[str]:
         """
         Fetch HTML content from a URL using curl_cffi with TLS fingerprint evasion.
         """
@@ -51,19 +56,21 @@ class BaseScraper(ABC):
                     headers=headers,
                     impersonate="chrome120",  # Impersonate chrome tls signature
                     proxies=self.proxies if self.use_proxy else None,
-                    timeout=30
+                    timeout=30,
                 )
                 if response.status_code == 200:
                     return response.text
-                
-                logger.warning(f"Failed to fetch {url} (Status: {response.status_code}) on attempt {attempt}")
+
+                logger.warning(
+                    f"Failed to fetch {url} (Status: {response.status_code}) on attempt {attempt}"
+                )
             except Exception as e:
                 logger.error(f"Error fetching {url} on attempt {attempt}: {str(e)}")
-            
+
             # Exponential backoff with jitter
-            sleep_time = (backoff ** attempt) + random.uniform(0.5, 1.5)
+            sleep_time = (backoff**attempt) + random.uniform(0.5, 1.5)
             time.sleep(sleep_time)
-            
+
         return None
 
     @abstractmethod

@@ -3,21 +3,23 @@ import logging
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from datetime import datetime
-from decimal import Decimal
 from typing import List, Dict, Any, Optional
 from scrapers.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
+
 class CPPPScraper(BaseScraper):
-    def __init__(self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None
+    ):
         super().__init__(use_proxy, proxies)
         self.base_url_candidates = [
             "https://eprocure.gov.in/cppp/latestactivetendersnew",
             "https://eprocure.gov.in/cppp/latestactivetenders",
             "https://eprocure.gov.in/cppp/latestactivecorrigendumsnew",
             "https://eprocure.gov.in/cppp/tendersclosingbydays/bytoday",
-            "https://eprocure.gov.in/cppp/"
+            "https://eprocure.gov.in/cppp/",
         ]
         self.base_url = self.resolve_base_url()
 
@@ -28,7 +30,9 @@ class CPPPScraper(BaseScraper):
             if html:
                 logger.info(f"CPPP base URL resolved to: {url}")
                 return url
-        logger.warning("CPPP base URL resolution failed; defaulting to first candidate.")
+        logger.warning(
+            "CPPP base URL resolution failed; defaulting to first candidate."
+        )
         return self.base_url_candidates[0]
 
     def parse_date(self, date_str: str) -> Optional[datetime]:
@@ -39,11 +43,11 @@ class CPPPScraper(BaseScraper):
             return None
         date_str = re.sub(r"\s+", " ", date_str).strip()
         for fmt in (
-            "%d-%b-%Y %I:%M %p", 
-            "%d-%b-%Y %H:%M", 
-            "%d-%m-%Y %H:%M", 
-            "%d-%b-%Y", 
-            "%d-%m-%Y"
+            "%d-%b-%Y %I:%M %p",
+            "%d-%b-%Y %H:%M",
+            "%d-%m-%Y %H:%M",
+            "%d-%b-%Y",
+            "%d-%m-%Y",
         ):
             try:
                 return datetime.strptime(date_str, fmt)
@@ -59,17 +63,18 @@ class CPPPScraper(BaseScraper):
         then build a permanent NIC eProcure detail URL.
         """
         import base64
+
         try:
-            path_parts = href.rstrip('/').split('/')
+            path_parts = href.rstrip("/").split("/")
             last_part = path_parts[-1]
             # The base64 segments are separated by 'A13h1' in CPPP URLs
-            first_segment = last_part.split('A13h1')[0]
+            first_segment = last_part.split("A13h1")[0]
             # Strip existing padding before re-padding to avoid invalid base64
-            first_segment = first_segment.rstrip('=')
+            first_segment = first_segment.rstrip("=")
             # Pad to a valid base64 length (multiple of 4)
             padding_needed = (4 - len(first_segment) % 4) % 4
-            padded = first_segment + '=' * padding_needed
-            decoded = base64.b64decode(padded).decode('utf-8', errors='ignore').strip()
+            padded = first_segment + "=" * padding_needed
+            decoded = base64.b64decode(padded).decode("utf-8", errors="ignore").strip()
             if decoded.isdigit():
                 # Direct NIC eProcure permanent URL with numeric tender ID
                 return f"https://eprocure.gov.in/eprocure/app?page=FrontEndTenderDetails&service=page&id={decoded}"
@@ -78,7 +83,8 @@ class CPPPScraper(BaseScraper):
 
         # Fallback: NIC eProcure advanced search by reference number
         from urllib.parse import quote
-        safe_ref = quote(tender_ref.strip(), safe='')
+
+        safe_ref = quote(tender_ref.strip(), safe="")
         return f"https://eprocure.gov.in/eprocure/app?page=FrontEndAdvancedSearchPage&service=page&searchKey={safe_ref}"
 
     def normalize_cppp_link(self, href: str) -> Optional[str]:
@@ -88,11 +94,15 @@ class CPPPScraper(BaseScraper):
             return None
 
         if href.lower().startswith("javascript:"):
-            match = re.search(r"showBidDocument\(['\"]([^'\"]+)['\"]\)", href, re.IGNORECASE)
+            match = re.search(
+                r"showBidDocument\(['\"]([^'\"]+)['\"]\)", href, re.IGNORECASE
+            )
             if match:
                 href = match.group(1)
             else:
-                logger.warning(f"CPPP scraper ignored unsupported javascript link: {original_href}")
+                logger.warning(
+                    f"CPPP scraper ignored unsupported javascript link: {original_href}"
+                )
                 return None
 
         if href.startswith("//"):
@@ -103,18 +113,47 @@ class CPPPScraper(BaseScraper):
 
         parsed = urlparse(href)
         if parsed.scheme not in ("http", "https") or not parsed.netloc:
-            logger.warning(f"CPPP scraper rejected malformed URL: original={original_href}, normalized={href}")
+            logger.warning(
+                f"CPPP scraper rejected malformed URL: original={original_href}, normalized={href}"
+            )
             return None
 
         return href
 
     INDIAN_STATES = [
-        "Delhi", "New Delhi", "Mumbai", "Maharashtra", "Karnataka", "Tamil Nadu",
-        "Telangana", "Gujarat", "Rajasthan", "Uttar Pradesh", "Madhya Pradesh",
-        "Punjab", "Haryana", "West Bengal", "Andhra Pradesh", "Kerala", "Odisha",
-        "Bihar", "Assam", "Jharkhand", "Chhattisgarh", "Uttarakhand",
-        "Himachal Pradesh", "Goa", "Jammu", "Kashmir", "Manipur", "Tripura",
-        "Meghalaya", "Nagaland", "Sikkim", "Arunachal Pradesh", "Mizoram"
+        "Delhi",
+        "New Delhi",
+        "Mumbai",
+        "Maharashtra",
+        "Karnataka",
+        "Tamil Nadu",
+        "Telangana",
+        "Gujarat",
+        "Rajasthan",
+        "Uttar Pradesh",
+        "Madhya Pradesh",
+        "Punjab",
+        "Haryana",
+        "West Bengal",
+        "Andhra Pradesh",
+        "Kerala",
+        "Odisha",
+        "Bihar",
+        "Assam",
+        "Jharkhand",
+        "Chhattisgarh",
+        "Uttarakhand",
+        "Himachal Pradesh",
+        "Goa",
+        "Jammu",
+        "Kashmir",
+        "Manipur",
+        "Tripura",
+        "Meghalaya",
+        "Nagaland",
+        "Sikkim",
+        "Arunachal Pradesh",
+        "Mizoram",
     ]
 
     def infer_location(self, organization: str, title: str) -> str:
@@ -150,27 +189,30 @@ class CPPPScraper(BaseScraper):
 
         # Tenders are usually displayed in a tabular view with class 'list_table'
         table = soup.find("table", class_="list_table") or soup.find("table")
-        
+
         if not table:
             logger.warning("No table found on CPPP. Exploring structural fallbacks.")
             rows = soup.find_all("tr")
         else:
             rows = table.find_all("tr")
-            
+
         logger.info(f"Found {len(rows)} potential table rows on CPPP.")
-        
+
         # Skip header row
         for row in rows[1:]:
             if len(tenders) >= limit:
                 break
-                
-            cols = [col.get_text(separator=" ").strip() for col in row.find_all(["td", "th"])]
+
+            cols = [
+                col.get_text(separator=" ").strip()
+                for col in row.find_all(["td", "th"])
+            ]
             if len(cols) < 6:
                 continue
 
-            published_date = cols[1]
+            # unused: published_date = cols[1]
             closing_date = cols[2]
-            opening_date = cols[3]
+            # unused: opening_date = cols[3]
             title_ref = cols[4]
             organization = cols[5]
 
@@ -209,9 +251,12 @@ class CPPPScraper(BaseScraper):
             # Final fallback: CPPP search by reference number (always unique per tender)
             if not stable_url:
                 from urllib.parse import quote
-                safe_ref = quote(tender_id.strip(), safe='')
+
+                safe_ref = quote(tender_id.strip(), safe="")
                 stable_url = f"https://eprocure.gov.in/eprocure/app?page=FrontEndAdvancedSearchPage&service=page&searchKey={safe_ref}"
-                logger.warning(f"CPPP scraper using search fallback URL for: {tender_id}")
+                logger.warning(
+                    f"CPPP scraper using search fallback URL for: {tender_id}"
+                )
 
             location = self.infer_location(organization, title)
 
@@ -223,18 +268,20 @@ class CPPPScraper(BaseScraper):
                 f"Submission of EMD, performance security, and compliance with GFR 2017 mandatory."
             )
 
-            tenders.append({
-                "tender_id": tender_id,
-                "title": f"CPPP Tender: {title}",
-                "department": organization,
-                "location": location,
-                "budget": None,
-                "deadline": deadline,
-                "eligibility_criteria": eligibility_text,
-                "source_url": stable_url,
-                "source_name": "CPPP",
-                "raw_html": str(row)
-            })
+            tenders.append(
+                {
+                    "tender_id": tender_id,
+                    "title": f"CPPP Tender: {title}",
+                    "department": organization,
+                    "location": location,
+                    "budget": None,
+                    "deadline": deadline,
+                    "eligibility_criteria": eligibility_text,
+                    "source_url": stable_url,
+                    "source_name": "CPPP",
+                    "raw_html": str(row),
+                }
+            )
 
         logger.info(f"CPPP scraper extracted {len(tenders)} live tenders successfully.")
         return tenders

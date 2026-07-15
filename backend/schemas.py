@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 
+
 # --- AUTHENTICATION ---
 class UserCreate(BaseModel):
     email: EmailStr
@@ -10,14 +11,17 @@ class UserCreate(BaseModel):
     full_name: Optional[str] = None
     role: Optional[str] = "company_user"  # admin, company_user
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+
 
 class UserOut(BaseModel):
     id: int
@@ -38,6 +42,7 @@ class ProjectSchema(BaseModel):
     description: Optional[str] = None
     year: int
 
+
 class CompanyCreate(BaseModel):
     name: str
     industry: Optional[str] = None
@@ -50,6 +55,7 @@ class CompanyCreate(BaseModel):
     team_strength: Optional[int] = 1
     geographic_coverage: Optional[List[str]] = []
     required_categories: Optional[List[str]] = []
+
 
 class CompanyOut(BaseModel):
     id: int
@@ -84,6 +90,7 @@ class TenderDocumentOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TenderOut(BaseModel):
     id: int
     tender_id: str
@@ -111,8 +118,10 @@ class TenderOut(BaseModel):
     def model_validate(cls, obj, *args, **kwargs):
         instance = super().model_validate(obj, *args, **kwargs)
         # Populate opportunity_score and eligibility from best eligibility report
-        if hasattr(obj, 'eligibility_reports') and obj.eligibility_reports:
-            best = max(obj.eligibility_reports, key=lambda r: r.opportunity_score, default=None)
+        if hasattr(obj, "eligibility_reports") and obj.eligibility_reports:
+            best = max(
+                obj.eligibility_reports, key=lambda r: r.opportunity_score, default=None
+            )
             if best:
                 instance.opportunity_score = best.opportunity_score
                 instance.eligibility = best.eligibility
@@ -141,12 +150,16 @@ class EligibilityReportOut(BaseModel):
 # --- AGENT TASKS ---
 class TaskStartRequest(BaseModel):
     task_type: str = Field(..., description="e.g. discovery, analysis, report")
-    target_id: Optional[str] = Field(None, description="Tender ID or other trigger argument")
+    target_id: Optional[str] = Field(
+        None, description="Tender ID or other trigger argument"
+    )
+
 
 class LogMessageSchema(BaseModel):
     timestamp: str
     level: str
     message: str
+
 
 class AgentTaskOut(BaseModel):
     id: str
@@ -181,6 +194,6 @@ class NotificationOut(BaseModel):
     @classmethod
     def model_validate(cls, obj, *args, **kwargs):
         instance = super().model_validate(obj, *args, **kwargs)
-        if hasattr(obj, 'notification_metadata'):
+        if hasattr(obj, "notification_metadata"):
             instance.notification_metadata = obj.notification_metadata
         return instance

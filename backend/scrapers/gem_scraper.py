@@ -11,15 +11,18 @@ from scrapers.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
+
 class GeMScraper(BaseScraper):
-    def __init__(self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, use_proxy: bool = False, proxies: Optional[Dict[str, str]] = None
+    ):
         super().__init__(use_proxy, proxies)
         self.base_url_candidates = [
             "https://bidplus.gem.gov.in/all-bids",
             "https://bidplus.gem.gov.in/bidlists",
             "https://bidplus.gem.gov.in/bidlist",
             "https://bidplus.gem.gov.in/",
-            "https://gem.gov.in/bidlists"
+            "https://gem.gov.in/bidlists",
         ]
         self.base_url = self.resolve_base_url()
 
@@ -45,7 +48,7 @@ class GeMScraper(BaseScraper):
             "%d-%m-%Y %H:%M",
             "%d-%m-%Y",
             "%Y-%m-%d %H:%M:%S",
-            "%Y-%m-%dT%H:%M:%SZ"
+            "%Y-%m-%dT%H:%M:%SZ",
         ):
             try:
                 return datetime.strptime(date_str, fmt)
@@ -71,7 +74,7 @@ class GeMScraper(BaseScraper):
             "Origin": "https://bidplus.gem.gov.in",
             "X-Requested-With": "XMLHttpRequest",
             "Accept-Language": "en-US,en;q=0.9",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         }
 
         page_response = session.get(
@@ -80,36 +83,32 @@ class GeMScraper(BaseScraper):
                 "User-Agent": headers["User-Agent"],
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 "Referer": self.base_url,
-                "Accept-Language": "en-US,en;q=0.9"
+                "Accept-Language": "en-US,en;q=0.9",
             },
             impersonate="chrome120",
-            timeout=30
+            timeout=30,
         )
         if page_response.status_code != 200:
-            logger.error(f"GeM all-bids page GET returned status {page_response.status_code}")
+            logger.error(
+                f"GeM all-bids page GET returned status {page_response.status_code}"
+            )
             return []
 
         page_html = page_response.text
         csrf_token = self.extract_csrf_token(page_html)
         postdata = {
-            "param": {
-                "searchBid": "",
-                "searchType": "fullText"
-            },
+            "param": {"searchBid": "", "searchType": "fullText"},
             "filter": {
                 "bidStatusType": "ongoing_bids",
                 "byType": "all",
                 "highBidValue": "",
                 "byEndDate": {"from": "", "to": ""},
-                "sort": "Bid-End-Date-Oldest"
+                "sort": "Bid-End-Date-Oldest",
             },
-            "currentPage": 1
+            "currentPage": 1,
         }
 
-        payload = {
-            "payload": json.dumps(postdata),
-            "csrf_bd_gem_nk": csrf_token or ""
-        }
+        payload = {"payload": json.dumps(postdata), "csrf_bd_gem_nk": csrf_token or ""}
 
         docs = []
         for attempt in range(1, 4):
@@ -119,16 +118,22 @@ class GeMScraper(BaseScraper):
                     data=payload,
                     headers=headers,
                     impersonate="chrome120",
-                    timeout=30
+                    timeout=30,
                 )
                 if json_response.status_code == 200:
                     response = json.loads(json_response.text)
-                    docs = response.get("response", {}).get("response", {}).get("docs", [])
+                    docs = (
+                        response.get("response", {}).get("response", {}).get("docs", [])
+                    )
                     if docs:
                         break
-                    logger.warning(f"GeM JSON API returned empty docs on attempt {attempt}.")
+                    logger.warning(
+                        f"GeM JSON API returned empty docs on attempt {attempt}."
+                    )
                 else:
-                    logger.warning(f"GeM JSON API returned status {json_response.status_code} on attempt {attempt}.")
+                    logger.warning(
+                        f"GeM JSON API returned status {json_response.status_code} on attempt {attempt}."
+                    )
             except Exception as e:
                 logger.warning(f"GeM JSON API attempt {attempt} failed: {e}")
 
@@ -136,7 +141,9 @@ class GeMScraper(BaseScraper):
                 time.sleep(2 * attempt)
 
         if not docs:
-            logger.warning("GeM JSON API did not return active docs after retries. Falling back to HTML scraping.")
+            logger.warning(
+                "GeM JSON API did not return active docs after retries. Falling back to HTML scraping."
+            )
             return self.scrape_html_fallback(limit)
 
         tenders = []
@@ -161,8 +168,16 @@ class GeMScraper(BaseScraper):
 
             deadline = self.parse_date((doc.get("final_end_date_sort") or [""])[0])
             source_id = (doc.get("b_id") or [None])[0]
-            bid_detail_url = f"https://bidplus.gem.gov.in/public-bid-other-details/{source_id}" if source_id else self.base_url
-            pdf_url = f"https://bidplus.gem.gov.in/showbidDocument/{source_id}" if source_id else None
+            bid_detail_url = (
+                f"https://bidplus.gem.gov.in/public-bid-other-details/{source_id}"
+                if source_id
+                else self.base_url
+            )
+            pdf_url = (
+                f"https://bidplus.gem.gov.in/showbidDocument/{source_id}"
+                if source_id
+                else None
+            )
             source_url = self.base_url
 
             # Parse budget from estimated_bid_value
@@ -170,7 +185,11 @@ class GeMScraper(BaseScraper):
             estimated_val = doc.get("estimated_bid_value")
             if estimated_val:
                 try:
-                    raw = estimated_val[0] if isinstance(estimated_val, list) else estimated_val
+                    raw = (
+                        estimated_val[0]
+                        if isinstance(estimated_val, list)
+                        else estimated_val
+                    )
                     budget = Decimal(str(raw)) if raw else None
                 except Exception:
                     pass
@@ -189,7 +208,15 @@ class GeMScraper(BaseScraper):
 
             # Build meaningful eligibility criteria from category + MSME flag
             categories = doc.get("b_category_name") or []
-            cats_text = ", ".join(str(c) for c in (categories[:3] if isinstance(categories, list) else [str(categories)]) if c)
+            cats_text = ", ".join(
+                str(c)
+                for c in (
+                    categories[:3]
+                    if isinstance(categories, list)
+                    else [str(categories)]
+                )
+                if c
+            )
             msme_flag = (doc.get("b_msme") or [False])[0]
             eligibility_text = (
                 f"GeM Bid {tender_id} – Item Category: {cats_text or title_text}. "
@@ -200,20 +227,22 @@ class GeMScraper(BaseScraper):
                 f"Financial, technical, and past supply experience eligibility as per bid document."
             )
 
-            tenders.append({
-                "tender_id": tender_id,
-                "title": f"GeM Bid: {title_text}",
-                "department": department or "GeM Government Bid",
-                "location": location,
-                "budget": budget,
-                "deadline": deadline,
-                "eligibility_criteria": eligibility_text,
-                "source_url": source_url,
-                "bid_detail_url": bid_detail_url,
-                "pdf_url": pdf_url,
-                "source_name": "GeM",
-                "raw_html": json.dumps(doc)
-            })
+            tenders.append(
+                {
+                    "tender_id": tender_id,
+                    "title": f"GeM Bid: {title_text}",
+                    "department": department or "GeM Government Bid",
+                    "location": location,
+                    "budget": budget,
+                    "deadline": deadline,
+                    "eligibility_criteria": eligibility_text,
+                    "source_url": source_url,
+                    "bid_detail_url": bid_detail_url,
+                    "pdf_url": pdf_url,
+                    "source_name": "GeM",
+                    "raw_html": json.dumps(doc),
+                }
+            )
 
         logger.info(f"GeM JSON API extracted {len(tenders)} live tenders successfully.")
         return tenders
@@ -232,12 +261,17 @@ class GeMScraper(BaseScraper):
 
         soup = BeautifulSoup(html, "html.parser")
         tenders = []
-        bid_blocks = soup.find_all("div", class_="card") or soup.find_all("div", class_="border")
+        bid_blocks = soup.find_all("div", class_="card") or soup.find_all(
+            "div", class_="border"
+        )
         if not bid_blocks:
             rows = soup.find_all("tr")
             logger.info(f"GeM HTML fallback found {len(rows)} table rows.")
             for row in rows:
-                cols = [col.get_text(separator=" ").strip() for col in row.find_all(["td", "th"])]
+                cols = [
+                    col.get_text(separator=" ").strip()
+                    for col in row.find_all(["td", "th"])
+                ]
                 if len(cols) < 3:
                     continue
                 row_text = " ".join(cols)
@@ -248,20 +282,22 @@ class GeMScraper(BaseScraper):
                 title = cols[2]
                 department = cols[1] if len(cols) > 1 else "GeM Department"
                 deadline = self.parse_date(cols[-1])
-                tenders.append({
-                    "tender_id": tender_id,
-                    "title": f"GeM Bid: {title}",
-                    "department": department,
-                    "location": "India",
-                    "budget": None,
-                    "deadline": deadline,
-                    "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
-                    "source_url": self.base_url,
-                    "bid_detail_url": self.base_url,
-                    "pdf_url": None,
-                    "source_name": "GeM",
-                    "raw_html": str(row)
-                })
+                tenders.append(
+                    {
+                        "tender_id": tender_id,
+                        "title": f"GeM Bid: {title}",
+                        "department": department,
+                        "location": "India",
+                        "budget": None,
+                        "deadline": deadline,
+                        "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
+                        "source_url": self.base_url,
+                        "bid_detail_url": self.base_url,
+                        "pdf_url": None,
+                        "source_name": "GeM",
+                        "raw_html": str(row),
+                    }
+                )
                 if len(tenders) >= limit:
                     break
         else:
@@ -276,25 +312,31 @@ class GeMScraper(BaseScraper):
                 tender_id = bid_no_match.group(0)
                 title = re.sub(r"\s+", " ", block_text)[:120]
                 deadline = None
-                end_date_match = re.search(r"End\s+Date\s*[:/]\s*([\d\-:\s]+)", block_text, re.IGNORECASE)
+                end_date_match = re.search(
+                    r"End\s+Date\s*[:/]\s*([\d\-:\s]+)", block_text, re.IGNORECASE
+                )
                 if end_date_match:
                     deadline = self.parse_date(end_date_match.group(1))
-                tenders.append({
-                    "tender_id": tender_id,
-                    "title": f"GeM Bid: {title}",
-                    "department": "GeM",
-                    "location": "India",
-                    "budget": None,
-                    "deadline": deadline,
-                    "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
-                    "source_url": self.base_url,
-                    "bid_detail_url": self.base_url,
-                    "pdf_url": None,
-                    "source_name": "GeM",
-                    "raw_html": str(block)
-                })
+                tenders.append(
+                    {
+                        "tender_id": tender_id,
+                        "title": f"GeM Bid: {title}",
+                        "department": "GeM",
+                        "location": "India",
+                        "budget": None,
+                        "deadline": deadline,
+                        "eligibility_criteria": f"GeM procurement eligibility details for {tender_id}.",
+                        "source_url": self.base_url,
+                        "bid_detail_url": self.base_url,
+                        "pdf_url": None,
+                        "source_name": "GeM",
+                        "raw_html": str(block),
+                    }
+                )
 
-        logger.info(f"GeM HTML fallback extracted {len(tenders)} live tenders successfully.")
+        logger.info(
+            f"GeM HTML fallback extracted {len(tenders)} live tenders successfully."
+        )
         return tenders
 
     def scrape(self, limit: int = 15) -> List[Dict[str, Any]]:
@@ -314,7 +356,9 @@ class GeMScraper(BaseScraper):
                     break
 
         if not html:
-            logger.error("Could not fetch HTML from GeM Bid Lists. Site might be blocking or offline.")
+            logger.error(
+                "Could not fetch HTML from GeM Bid Lists. Site might be blocking or offline."
+            )
             return []
 
         # If we are hitting the new GeM all-bids page, use the JSON endpoint behind it.
@@ -323,74 +367,116 @@ class GeMScraper(BaseScraper):
 
         soup = BeautifulSoup(html, "html.parser")
         tenders = []
-        
+
         # Locate bid cards. Usually inside divs with class 'border' or specific list structures
-        bid_blocks = soup.find_all("div", class_="card") or soup.find_all("div", class_="border")
-        
+        bid_blocks = soup.find_all("div", class_="card") or soup.find_all(
+            "div", class_="border"
+        )
+
         # Fallback if page structure differs (e.g. table-based)
         if not bid_blocks:
             rows = soup.find_all("tr")
             if len(rows) > 1:
-                logger.info(f"No card containers found, falling back to table row parsing on {len(rows)} rows.")
-        
+                logger.info(
+                    f"No card containers found, falling back to table row parsing on {len(rows)} rows."
+                )
+
         logger.info(f"Found {len(bid_blocks)} potential bid containers on GeM.")
-        
+
         for block in bid_blocks:
             if len(tenders) >= limit:
                 break
-                
+
             block_text = block.get_text(separator=" ").strip()
-            
+
             # Search for typical GeM Bid Numbers: GEM/2026/B/XXXX or GEM/XXXX
             bid_no_match = re.search(r"GEM/\d{4}/[A-Z]/\d+", block_text)
             if not bid_no_match:
                 # Try a looser pattern
                 bid_no_match = re.search(r"GEM/\d+/[A-Z]/\d+", block_text)
                 if not bid_no_match:
-                    bid_no_match = re.search(r"Bid\s+Number:\s*([^\s\n\r]+)", block_text, re.IGNORECASE)
-                    
+                    bid_no_match = re.search(
+                        r"Bid\s+Number:\s*([^\s\n\r]+)", block_text, re.IGNORECASE
+                    )
+
             if not bid_no_match:
                 continue
-                
-            tender_id = bid_no_match.group(1) if hasattr(bid_no_match, "group") and len(bid_no_match.groups()) > 0 else bid_no_match.group(0)
+
+            tender_id = (
+                bid_no_match.group(1)
+                if hasattr(bid_no_match, "group") and len(bid_no_match.groups()) > 0
+                else bid_no_match.group(0)
+            )
             tender_id = tender_id.replace("Bid Number:", "").strip()
-            
+
             # Parse dates
             # GeM displays 'Bid End Date/Time:' or 'End Date'
-            end_date_match = re.search(r"End\s+Date\s*[:/]\s*([\d\-:\s]+)", block_text, re.IGNORECASE)
+            end_date_match = re.search(
+                r"End\s+Date\s*[:/]\s*([\d\-:\s]+)", block_text, re.IGNORECASE
+            )
             if not end_date_match:
-                end_date_match = re.search(r"[\d]{2}-[\d]{2}-[\d]{4}\s+[\d]{2}:[\d]{2}:[\d]{2}", block_text)
-            
+                end_date_match = re.search(
+                    r"[\d]{2}-[\d]{2}-[\d]{4}\s+[\d]{2}:[\d]{2}:[\d]{2}", block_text
+                )
+
             deadline = None
             if end_date_match:
-                deadline_str = end_date_match.group(1) if len(end_date_match.groups()) > 0 else end_date_match.group(0)
+                deadline_str = (
+                    end_date_match.group(1)
+                    if len(end_date_match.groups()) > 0
+                    else end_date_match.group(0)
+                )
                 deadline = self.parse_date(deadline_str)
-            
+
             # Items/Title details
             # Usually says "Items:" or "Item Category:" or "Product:"
-            items_match = re.search(r"Items?\s*:\s*([^:\n]+)", block_text, re.IGNORECASE)
+            items_match = re.search(
+                r"Items?\s*:\s*([^:\n]+)", block_text, re.IGNORECASE
+            )
             if not items_match:
-                items_match = re.search(r"Category\s*:\s*([^:\n]+)", block_text, re.IGNORECASE)
-                
-            title = items_match.group(1).strip() if items_match else "Procurement of Products/Services"
+                items_match = re.search(
+                    r"Category\s*:\s*([^:\n]+)", block_text, re.IGNORECASE
+                )
+
+            title = (
+                items_match.group(1).strip()
+                if items_match
+                else "Procurement of Products/Services"
+            )
             # Clean title
             title = re.sub(r"\s+", " ", title).strip()
-            
+
             # Department Name
-            dept_match = re.search(r"Department\s*:\s*([^:\n]+)", block_text, re.IGNORECASE)
+            dept_match = re.search(
+                r"Department\s*:\s*([^:\n]+)", block_text, re.IGNORECASE
+            )
             if not dept_match:
-                dept_match = re.search(r"Ministry\s*:\s*([^:\n]+)", block_text, re.IGNORECASE)
-            
-            department = dept_match.group(1).strip() if dept_match else "Ministry of Commerce & Industry"
+                dept_match = re.search(
+                    r"Ministry\s*:\s*([^:\n]+)", block_text, re.IGNORECASE
+                )
+
+            department = (
+                dept_match.group(1).strip()
+                if dept_match
+                else "Ministry of Commerce & Industry"
+            )
             department = re.sub(r"\s+", " ", department).strip()
-            
+
             # Location
-            location_match = re.search(r"Location\s*:\s*([^:\n]+)", block_text, re.IGNORECASE)
-            location = location_match.group(1).strip() if location_match else "New Delhi, India"
-            
+            location_match = re.search(
+                r"Location\s*:\s*([^:\n]+)", block_text, re.IGNORECASE
+            )
+            location = (
+                location_match.group(1).strip()
+                if location_match
+                else "New Delhi, India"
+            )
+
             # Budget - GeM bids sometimes hide or omit budget (estimates are generated or read from PDF link)
             # Default to None or look for financial values
-            budget_match = re.search(r"Value\s*:\s*₹?\s*([\d,]+)", block_text, re.IGNORECASE)
+            budget_match = re.search(
+                r"Value\s*:\s*₹?\s*([\d,]+)", block_text, re.IGNORECASE
+            )
             budget = None
             if budget_match:
                 try:
@@ -398,7 +484,7 @@ class GeMScraper(BaseScraper):
                     budget = Decimal(budget_str)
                 except Exception:
                     pass
-            
+
             # PDF Bid Document Link
             # Find any PDF links inside this block
             pdf_link = None
@@ -411,21 +497,23 @@ class GeMScraper(BaseScraper):
                     else:
                         pdf_link = f"https://bidplus.gem.gov.in{href}"
                     break
-            
-            tenders.append({
-                "tender_id": tender_id,
-                "title": f"GeM Bid: {title}",
-                "department": department,
-                "location": location,
-                "budget": budget,
-                "deadline": deadline,
-                "eligibility_criteria": f"GeM Bid Terms for {tender_id}. Must comply with GeM general terms & conditions (GTC).",
-                "source_url": self.base_url,
-                "bid_detail_url": self.base_url,
-                "pdf_url": pdf_link,
-                "source_name": "GeM",
-                "raw_html": str(block)
-            })
-            
+
+            tenders.append(
+                {
+                    "tender_id": tender_id,
+                    "title": f"GeM Bid: {title}",
+                    "department": department,
+                    "location": location,
+                    "budget": budget,
+                    "deadline": deadline,
+                    "eligibility_criteria": f"GeM Bid Terms for {tender_id}. Must comply with GeM general terms & conditions (GTC).",
+                    "source_url": self.base_url,
+                    "bid_detail_url": self.base_url,
+                    "pdf_url": pdf_link,
+                    "source_name": "GeM",
+                    "raw_html": str(block),
+                }
+            )
+
         logger.info(f"GeM scraper extracted {len(tenders)} live tenders successfully.")
         return tenders
