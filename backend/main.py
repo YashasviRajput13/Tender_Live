@@ -34,9 +34,25 @@ app = FastAPI(
 )
 
 # CORS Policy configuration
+import os
+
+origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+]
+
+# Allow dynamic Vercel URLs or specific production URL
+frontend_url = os.environ.get("FRONTEND_URL")
+if frontend_url:
+    origins.append(frontend_url)
+    
+# Allow wildcard for vercel preview deployments if desired, but we'll stick to env var for security.
+# To allow wildcard Vercel previews you could use regex or add them dynamically.
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=origins,  # Configured for Vercel & Local
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
