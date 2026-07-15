@@ -1,5 +1,9 @@
 #  Tender Live
 
+<img width="1907" height="855" alt="image" src="https://github.com/user-attachments/assets/dd92394b-383e-4eb9-ab09-ab282ab509d8" /> , <img width="1907" height="851" alt="image" src="https://github.com/user-attachments/assets/e216222e-7a87-488f-b31c-62b94842b9c7" />
+
+
+
 <div align="center">
 
 <img src="https://readme-typing-svg.demolab.com?font=Poppins&weight=700&size=28&duration=3000&pause=1000&color=F5B841&center=true&vCenter=true&width=1000&lines=Agentic+Tender+Discovery+Platform;AI-Powered+Procurement+Intelligence;Multi-Agent+Tender+Analysis;Transforming+Tender+Discovery+into+Tender+Intelligence" />
