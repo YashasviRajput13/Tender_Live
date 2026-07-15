@@ -374,6 +374,54 @@ Multi-Agent Workflow Architecture
 
 ---
 
+## Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- Node.js (for local frontend development)
+- Python 3.9+ (for local backend development)
+## How to Run the Program (Docker - Recommended)
+The easiest way to start the entire stack is using Docker Compose.
+1. **Configure Environment Variables:**
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   *Edit `.env` to add your specific API keys (e.g., `GEMINI_API_KEY`, `OPENAI_API_KEY`).*
+2. **Start the application:**
+   From the root of the project, run:
+   ```bash
+   docker-compose up --build
+   ```
+   *(Add `-d` to run in detached mode).*
+3. **Access the Application:**
+   - **Frontend:** http://localhost:5173
+   - **Backend API Docs (Swagger):** http://localhost:8000/docs
+   - **Database (PostgreSQL):** `localhost:5432`
+---
+## How to Run Locally (Without Docker)
+If you prefer to run the services individually on your local machine:
+### 1. Backend Setup
+```bash
+cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+*(Make sure you have a local PostgreSQL and Redis instance running).*
+### 2. Celery Workers
+In a separate terminal (with the backend virtual environment activated):
+```bash
+cd backend
+celery -A workers.celery_app.celery_instance worker --loglevel=info -Q celery -c 4
+```
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend will be available at http://localhost:5173 and will proxy API requests to your local backend running on port 8000.
+
 # 🚀 Future Roadmap
 
 ### Phase 1
