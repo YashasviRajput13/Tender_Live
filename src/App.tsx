@@ -1,0 +1,181 @@
+import React, { useState } from 'react';
+import { Navbar } from './components/Navbar';
+import { WorkflowBar } from './components/WorkflowBar';
+import { HeroBanner } from './components/HeroBanner';
+import { StatCards } from './components/StatCards';
+import { RecentTendersTable } from './components/RecentTendersTable';
+import { GovernmentSourcesGrid } from './components/GovernmentSourcesGrid';
+import { VerificationWorkbench } from './components/VerificationWorkbench';
+import { TendersScreen } from './components/TendersScreen';
+import { AuditTrailScreen } from './components/AuditTrailScreen';
+import { ReportsScreen } from './components/ReportsScreen';
+import { UploadTenderModal } from './components/UploadTenderModal';
+import { Footer } from './components/Footer';
+
+import { 
+  INITIAL_TENDERS, 
+  INITIAL_GOVERNMENT_SOURCES, 
+  INITIAL_AUDIT_LOGS 
+} from './data/tendersData';
+import { NavigationTab, Tender, WorkflowStepId, AuditTrailLog } from './types';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
+  const [tenders, setTenders] = useState<Tender[]>(INITIAL_TENDERS);
+  const [selectedTender, setSelectedTender] = useState<Tender>(INITIAL_TENDERS[0]);
+  const [auditLogs, setAuditLogs] = useState<AuditTrailLog[]>(INITIAL_AUDIT_LOGS);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [currentWorkflowStep, setCurrentWorkflowStep] = useState<WorkflowStepId>(1);
+
+  // Quick 1-Click Interactive Demo (Tender 1024)
+  const handleLaunchDemo = () => {
+    const demoTender = tenders.find((t) => t.id === 'GEM/2026/PROC/1024') || tenders[0];
+    setSelectedTender(demoTender);
+    setCurrentWorkflowStep(5); // Land on Explainable Risks for high impact demo!
+    setActiveTab('verification');
+  };
+
+  const handleSelectTenderForVerification = (tender: Tender) => {
+    setSelectedTender(tender);
+    setCurrentWorkflowStep(1);
+    setActiveTab('verification');
+  };
+
+  const handleWorkflowStepClick = (stepId: WorkflowStepId) => {
+    setCurrentWorkflowStep(stepId);
+    setActiveTab('verification');
+  };
+
+  const handleRecordAuditLog = (log: {
+    tenderId: string;
+    bidderName: string;
+    action: string;
+    category: 'VERIFICATION' | 'OVERRIDE' | 'DECISION' | 'CLARIFICATION';
+    justification: string;
+  }) => {
+    const newLog: AuditTrailLog = {
+      id: `aud-${Date.now()}`,
+      timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST',
+      officer: 'R. K. Sharma (Procurement Officer)',
+      tenderId: log.tenderId,
+      bidderName: log.bidderName,
+      action: log.action,
+      category: log.category,
+      sha256: '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0')).join(''),
+      justification: log.justification,
+    };
+
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  const handleAddNewTender = (newTender: Tender) => {
+    setTenders((prev) => [newTender, ...prev]);
+    setSelectedTender(newTender);
+    setActiveTab('verification');
+    setCurrentWorkflowStep(1);
+
+    handleRecordAuditLog({
+      tenderId: newTender.id,
+      bidderName: 'All Initial Bidders',
+      action: `New Tender Ingested: ${newTender.title}`,
+      category: 'VERIFICATION',
+      justification: 'Automated AI extraction codified RFP requirements and scheduled cross-registry verification.'
+    });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#f8f9ff] text-[#0b1c30]">
+      {/* Top Main Navigation Bar */}
+      <Navbar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onLaunchDemo={handleLaunchDemo}
+        onOpenUpload={() => setIsUploadModalOpen(true)}
+      />
+
+      {/* Workflow Horizontal Progress Ribbon */}
+      <WorkflowBar
+        currentStep={activeTab === 'verification' ? currentWorkflowStep : 1}
+        onStepClick={handleWorkflowStepClick}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* DASHBOARD VIEW (Pixel-perfect to user screenshot) */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6 animate-in fade-in duration-100">
+            {/* Hero Card with "Run Interactive Demo" */}
+            <HeroBanner
+              onRunDemo={handleLaunchDemo}
+              onUploadTender={() => setIsUploadModalOpen(true)}
+            />
+
+            {/* 4 Stat Cards */}
+            <StatCards
+              onCardClick={(type) => {
+                if (type === 'high-risk') {
+                  handleLaunchDemo();
+                } else {
+                  setActiveTab('tenders');
+                }
+              }}
+            />
+
+            {/* Recent Tenders Table */}
+            <RecentTendersTable
+              tenders={tenders}
+              onSelectTender={handleSelectTenderForVerification}
+              onUploadClick={() => setIsUploadModalOpen(true)}
+            />
+
+            {/* Authorised Government Data Sources */}
+            <GovernmentSourcesGrid sources={INITIAL_GOVERNMENT_SOURCES} />
+          </div>
+        )}
+
+        {/* VERIFICATION WORKBENCH (Deep dive for Tender 1024 and others) */}
+        {activeTab === 'verification' && (
+          <VerificationWorkbench
+            tender={selectedTender}
+            initialStep={currentWorkflowStep}
+            onBackToDashboard={() => setActiveTab('dashboard')}
+            onRecordAuditLog={handleRecordAuditLog}
+          />
+        )}
+
+        {/* TENDERS REGISTRY */}
+        {activeTab === 'tenders' && (
+          <TendersScreen
+            tenders={tenders}
+            onSelectTender={handleSelectTenderForVerification}
+            onUploadClick={() => setIsUploadModalOpen(true)}
+          />
+        )}
+
+        {/* CRYPTOGRAPHIC AUDIT TRAIL */}
+        {activeTab === 'audit-trail' && (
+          <AuditTrailScreen logs={auditLogs} />
+        )}
+
+        {/* EVALUATION REPORTS */}
+        {activeTab === 'reports' && (
+          <ReportsScreen
+            tenders={tenders}
+            onSelectTenderForWorkbench={handleSelectTenderForVerification}
+          />
+        )}
+      </main>
+
+      {/* Global Upload Tender Modal */}
+      <UploadTenderModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onAddTender={handleAddNewTender}
+      />
+
+      {/* Footer */}
+      <Footer />
+    </div>
+  );
+}
