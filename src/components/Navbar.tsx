@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { GeMLogo } from './GeMLogo';
 import { 
-  ShieldCheck, 
   Eye, 
   Bell, 
   Plus, 
@@ -16,6 +16,7 @@ interface NavbarProps {
   onSelectTab: (tab: NavigationTab) => void;
   onLaunchDemo: () => void;
   onOpenUpload: () => void;
+  onOpenLogin?: () => void;
   unreadAlertsCount?: number;
 }
 
@@ -24,25 +25,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onLaunchDemo,
   onOpenUpload,
+  onOpenLogin,
   unreadAlertsCount = 3,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Dedicated desktop navigation items (5 primary views)
+  // Dedicated desktop navigation items
   const desktopNavItems: { id: NavigationTab; label: string }[] = [
+    { id: 'landing', label: 'Home' },
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'tenders', label: 'Tenders' },
-    { id: 'verification', label: 'Verification' },
     { id: 'reports', label: 'Reports' },
     { id: 'audit-trail', label: 'Audit Trail' },
   ];
 
   // Mobile menu items including quick action
   const mobileNavItems: { id: NavigationTab; label: string; isAction?: boolean }[] = [
+    { id: 'landing', label: 'Home (Landing Page)' },
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'tenders', label: 'Tenders' },
-    { id: 'verification', label: 'Verification' },
     { id: 'reports', label: 'Reports' },
     { id: 'audit-trail', label: 'Audit Trail' },
     { id: 'new-verification', label: '+ Upload New Tender PDF', isAction: true },
@@ -64,18 +66,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand Logo & Desktop Navigation */}
           <div className="flex items-center gap-3 xl:gap-5 min-w-0">
             <button 
-              onClick={() => onSelectTab('dashboard')} 
+              onClick={() => onSelectTab('landing')} 
               className="flex items-center gap-2.5 text-left focus:outline-hidden group shrink-0"
               id="brand-logo-btn"
               title="GeM VerifyAI — From Documents to Trusted Decisions"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#0F2C59] to-[#006398] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
-                <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
-              </div>
+              <GeMLogo className="w-9 h-9 sm:w-10 sm:h-10 drop-shadow-xs group-hover:scale-105 transition-transform" />
               <div className="flex flex-col justify-center min-w-0">
                 <div className="flex items-center gap-1.5 whitespace-nowrap leading-none">
-                  <span className="font-bold text-base sm:text-lg text-[#0F2C59] tracking-tight whitespace-nowrap">
-                    GeM VerifyAI
+                  <span className="font-bold text-base sm:text-lg tracking-tight whitespace-nowrap">
+                    <span className="text-[#0F2C59]">GeM </span>
+                    <span className="text-[#166534]">Verify</span>
+                    <span className="text-[#0F2C59]">AI</span>
                   </span>
                   <span className="text-[9.5px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                     GovTech

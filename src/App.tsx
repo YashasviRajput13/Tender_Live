@@ -10,6 +10,8 @@ import { TendersScreen } from './components/TendersScreen';
 import { AuditTrailScreen } from './components/AuditTrailScreen';
 import { ReportsScreen } from './components/ReportsScreen';
 import { UploadTenderModal } from './components/UploadTenderModal';
+import { LandingPage } from './components/LandingPage';
+import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
 
 import { 
@@ -20,11 +22,12 @@ import {
 import { NavigationTab, Tender, WorkflowStepId, AuditTrailLog } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<NavigationTab>('landing');
   const [tenders, setTenders] = useState<Tender[]>(INITIAL_TENDERS);
   const [selectedTender, setSelectedTender] = useState<Tender>(INITIAL_TENDERS[0]);
   const [auditLogs, setAuditLogs] = useState<AuditTrailLog[]>(INITIAL_AUDIT_LOGS);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentWorkflowStep, setCurrentWorkflowStep] = useState<WorkflowStepId>(1);
 
   // Quick 1-Click Interactive Demo (Tender 1024)
@@ -86,86 +89,111 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9ff] text-[#0b1c30]">
-      {/* Top Main Navigation Bar */}
-      <Navbar
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        onLaunchDemo={handleLaunchDemo}
-        onOpenUpload={() => setIsUploadModalOpen(true)}
+      {/* 
+        If activeTab is 'landing', show the full dedicated Landing Page.
+        Otherwise show the authenticated procurement dashboard suite with Navbar & Workflow ribbon.
+      */}
+      {activeTab === 'landing' ? (
+        <LandingPage
+          onExplorePrototype={() => setActiveTab('dashboard')}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          onViewVerificationWorkflow={handleLaunchDemo}
+        />
+      ) : (
+        <>
+          {/* Top Main Navigation Bar for Dashboard/Workbench */}
+          <Navbar
+            activeTab={activeTab}
+            onSelectTab={setActiveTab}
+            onLaunchDemo={handleLaunchDemo}
+            onOpenUpload={() => setIsUploadModalOpen(true)}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+          />
+
+          {/* Workflow Horizontal Progress Ribbon */}
+          <WorkflowBar
+            currentStep={activeTab === 'verification' ? currentWorkflowStep : 1}
+            onStepClick={handleWorkflowStepClick}
+          />
+
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            {/* DASHBOARD VIEW */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6 animate-in fade-in duration-100">
+                {/* Hero Card with "Run Interactive Demo" */}
+                <HeroBanner
+                  onRunDemo={handleLaunchDemo}
+                  onUploadTender={() => setIsUploadModalOpen(true)}
+                />
+
+                {/* 4 Stat Cards */}
+                <StatCards
+                  onCardClick={(type) => {
+                    if (type === 'high-risk') {
+                      handleLaunchDemo();
+                    } else {
+                      setActiveTab('tenders');
+                    }
+                  }}
+                />
+
+                {/* Recent Tenders Table */}
+                <RecentTendersTable
+                  tenders={tenders}
+                  onSelectTender={handleSelectTenderForVerification}
+                  onUploadClick={() => setIsUploadModalOpen(true)}
+                />
+
+                {/* Authorised Government Data Sources */}
+                <GovernmentSourcesGrid sources={INITIAL_GOVERNMENT_SOURCES} />
+              </div>
+            )}
+
+            {/* VERIFICATION WORKBENCH (Deep dive for Tender 1024 and others) */}
+            {activeTab === 'verification' && (
+              <VerificationWorkbench
+                tender={selectedTender}
+                initialStep={currentWorkflowStep}
+                onBackToDashboard={() => setActiveTab('dashboard')}
+                onRecordAuditLog={handleRecordAuditLog}
+              />
+            )}
+
+            {/* TENDERS REGISTRY */}
+            {activeTab === 'tenders' && (
+              <TendersScreen
+                tenders={tenders}
+                onSelectTender={handleSelectTenderForVerification}
+                onUploadClick={() => setIsUploadModalOpen(true)}
+              />
+            )}
+
+            {/* CRYPTOGRAPHIC AUDIT TRAIL */}
+            {activeTab === 'audit-trail' && (
+              <AuditTrailScreen logs={auditLogs} />
+            )}
+
+            {/* EVALUATION REPORTS */}
+            {activeTab === 'reports' && (
+              <ReportsScreen
+                tenders={tenders}
+                onSelectTenderForWorkbench={handleSelectTenderForVerification}
+              />
+            )}
+          </main>
+
+          {/* Footer */}
+          <Footer />
+        </>
+      )}
+
+      {/* Global Officer Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={() => setActiveTab('dashboard')}
       />
-
-      {/* Workflow Horizontal Progress Ribbon */}
-      <WorkflowBar
-        currentStep={activeTab === 'verification' ? currentWorkflowStep : 1}
-        onStepClick={handleWorkflowStepClick}
-      />
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* DASHBOARD VIEW (Pixel-perfect to user screenshot) */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6 animate-in fade-in duration-100">
-            {/* Hero Card with "Run Interactive Demo" */}
-            <HeroBanner
-              onRunDemo={handleLaunchDemo}
-              onUploadTender={() => setIsUploadModalOpen(true)}
-            />
-
-            {/* 4 Stat Cards */}
-            <StatCards
-              onCardClick={(type) => {
-                if (type === 'high-risk') {
-                  handleLaunchDemo();
-                } else {
-                  setActiveTab('tenders');
-                }
-              }}
-            />
-
-            {/* Recent Tenders Table */}
-            <RecentTendersTable
-              tenders={tenders}
-              onSelectTender={handleSelectTenderForVerification}
-              onUploadClick={() => setIsUploadModalOpen(true)}
-            />
-
-            {/* Authorised Government Data Sources */}
-            <GovernmentSourcesGrid sources={INITIAL_GOVERNMENT_SOURCES} />
-          </div>
-        )}
-
-        {/* VERIFICATION WORKBENCH (Deep dive for Tender 1024 and others) */}
-        {activeTab === 'verification' && (
-          <VerificationWorkbench
-            tender={selectedTender}
-            initialStep={currentWorkflowStep}
-            onBackToDashboard={() => setActiveTab('dashboard')}
-            onRecordAuditLog={handleRecordAuditLog}
-          />
-        )}
-
-        {/* TENDERS REGISTRY */}
-        {activeTab === 'tenders' && (
-          <TendersScreen
-            tenders={tenders}
-            onSelectTender={handleSelectTenderForVerification}
-            onUploadClick={() => setIsUploadModalOpen(true)}
-          />
-        )}
-
-        {/* CRYPTOGRAPHIC AUDIT TRAIL */}
-        {activeTab === 'audit-trail' && (
-          <AuditTrailScreen logs={auditLogs} />
-        )}
-
-        {/* EVALUATION REPORTS */}
-        {activeTab === 'reports' && (
-          <ReportsScreen
-            tenders={tenders}
-            onSelectTenderForWorkbench={handleSelectTenderForVerification}
-          />
-        )}
-      </main>
 
       {/* Global Upload Tender Modal */}
       <UploadTenderModal
@@ -173,9 +201,6 @@ export default function App() {
         onClose={() => setIsUploadModalOpen(false)}
         onAddTender={handleAddNewTender}
       />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
