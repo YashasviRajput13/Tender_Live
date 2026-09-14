@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, Upload } from 'lucide-react';
 
-interface HeroBannerProps {
+interface HeroBannerProps{
   onRunDemo: () => void;
   onUploadTender: () => void;
 }
