@@ -13,6 +13,7 @@ import { UploadTenderModal } from './components/UploadTenderModal';
 import { LandingPage } from './components/LandingPage';
 import { LoginModal } from './components/LoginModal';
 import { Footer } from './components/Footer';
+import { LiveScraperModal } from './components/LiveScraperModal';
 
 import { 
   INITIAL_TENDERS, 
@@ -27,6 +28,7 @@ export default function App() {
   const [selectedTender, setSelectedTender] = useState<Tender>(INITIAL_TENDERS[0]);
   const [auditLogs, setAuditLogs] = useState<AuditTrailLog[]>(INITIAL_AUDIT_LOGS);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isScraperModalOpen, setIsScraperModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentWorkflowStep, setCurrentWorkflowStep] = useState<WorkflowStepId>(1);
 
@@ -87,6 +89,27 @@ export default function App() {
     });
   };
 
+  const handleImportScrapedTender = (newTender: Tender) => {
+    setTenders((prev) => {
+      const exists = prev.some((t) => t.id === newTender.id);
+      if (exists) {
+        return prev.map((t) => (t.id === newTender.id ? newTender : t));
+      }
+      return [newTender, ...prev];
+    });
+    setSelectedTender(newTender);
+    setActiveTab('verification');
+    setCurrentWorkflowStep(1);
+
+    handleRecordAuditLog({
+      tenderId: newTender.id,
+      bidderName: 'All Initial Bidders',
+      action: `Portal Scraper Ingested: ${newTender.title}`,
+      category: 'VERIFICATION',
+      justification: `Direct synchronization from government portal (${newTender.subtitle}). Automated parser codified eligibility clauses and scheduled statutory verifications.`
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9ff] text-[#0b1c30]">
       {/* 
@@ -107,6 +130,7 @@ export default function App() {
             onSelectTab={setActiveTab}
             onLaunchDemo={handleLaunchDemo}
             onOpenUpload={() => setIsUploadModalOpen(true)}
+            onOpenScraper={() => setIsScraperModalOpen(true)}
             onOpenLogin={() => setIsLoginModalOpen(true)}
           />
 
@@ -125,6 +149,7 @@ export default function App() {
                 <HeroBanner
                   onRunDemo={handleLaunchDemo}
                   onUploadTender={() => setIsUploadModalOpen(true)}
+                  onOpenScraper={() => setIsScraperModalOpen(true)}
                 />
 
                 {/* 4 Stat Cards */}
@@ -143,6 +168,7 @@ export default function App() {
                   tenders={tenders}
                   onSelectTender={handleSelectTenderForVerification}
                   onUploadClick={() => setIsUploadModalOpen(true)}
+                  onOpenScraper={() => setIsScraperModalOpen(true)}
                 />
 
                 {/* Authorised Government Data Sources */}
@@ -166,6 +192,7 @@ export default function App() {
                 tenders={tenders}
                 onSelectTender={handleSelectTenderForVerification}
                 onUploadClick={() => setIsUploadModalOpen(true)}
+                onOpenScraper={() => setIsScraperModalOpen(true)}
               />
             )}
 
@@ -200,6 +227,13 @@ export default function App() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onAddTender={handleAddNewTender}
+      />
+
+      {/* Live Government Tender Scraper Modal */}
+      <LiveScraperModal
+        isOpen={isScraperModalOpen}
+        onClose={() => setIsScraperModalOpen(false)}
+        onImportTender={handleImportScrapedTender}
       />
     </div>
   );

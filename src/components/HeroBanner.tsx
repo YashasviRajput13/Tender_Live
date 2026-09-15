@@ -1,14 +1,16 @@
 import React from 'react';
-import { Zap, Upload } from 'lucide-react';
+import { Zap, Upload, Globe } from 'lucide-react';
 
 interface HeroBannerProps{
   onRunDemo: () => void;
   onUploadTender: () => void;
+  onOpenScraper?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   onRunDemo,
   onUploadTender,
+  onOpenScraper,
 }) => {
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#071933] via-[#0F2C59] to-[#1a3d6d] p-6 sm:p-8 lg:p-10 text-white shadow-lg border border-blue-900/40">
@@ -50,6 +52,17 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             <Zap className="w-4 h-4 fill-white" />
             <span>Run Interactive Demo (Tender 1024)</span>
           </button>
+
+          {onOpenScraper && (
+            <button
+              id="hero-live-scraper-btn"
+              onClick={onOpenScraper}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600/90 hover:bg-blue-600 active:bg-blue-700 text-white text-sm font-semibold border border-blue-400/30 shadow-md hover:shadow-lg transition-all focus:ring-2 focus:ring-blue-300 focus:outline-hidden"
+            >
+              <Globe className="w-4 h-4 animate-pulse text-blue-200" />
+              <span>Live Portal Scraper (GeM & CPPP)</span>
+            </button>
+          )}
 
           <button
             id="hero-upload-tender-btn"

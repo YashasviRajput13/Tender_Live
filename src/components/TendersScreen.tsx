@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Search, Filter, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Search, Filter, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, ShieldAlert, Globe } from 'lucide-react';
 import { Tender } from '../types';
 
 interface TendersScreenProps {
   tenders: Tender[];
   onSelectTender: (tender: Tender) => void;
   onUploadClick: () => void;
+  onOpenScraper?: () => void;
 }
 
 export const TendersScreen: React.FC<TendersScreenProps> = ({
   tenders,
   onSelectTender,
   onUploadClick,
+  onOpenScraper,
 }) => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterDept, setFilterDept] = useState<string>('all');
@@ -39,12 +41,23 @@ export const TendersScreen: React.FC<TendersScreenProps> = ({
             Government e-Marketplace active procurements undergoing automated compliance and human scrutiny.
           </p>
         </div>
-        <button
-          onClick={onUploadClick}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold self-start sm:self-auto shadow-xs"
-        >
-          + Upload New Tender PDF
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {onOpenScraper && (
+            <button
+              onClick={onOpenScraper}
+              className="px-4 py-2 bg-gradient-to-r from-blue-700 to-[#0F2C59] hover:from-blue-800 hover:to-slate-900 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+            >
+              <Globe className="w-3.5 h-3.5 text-blue-300 animate-pulse" />
+              <span>Live Portal Scraper</span>
+            </button>
+          )}
+          <button
+            onClick={onUploadClick}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+          >
+            + Upload New Tender PDF
+          </button>
+        </div>
       </div>
 
       {/* Filter Controls */}

@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Search, Plus, ArrowRight, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Plus, ArrowRight, ShieldAlert, CheckCircle2, Clock, Globe } from 'lucide-react';
 import { Tender } from '../types';
 
 interface RecentTendersTableProps {
   tenders: Tender[];
   onSelectTender: (tender: Tender) => void;
   onUploadClick: () => void;
+  onOpenScraper?: () => void;
 }
 
 export const RecentTendersTable: React.FC<RecentTendersTableProps> = ({
   tenders,
   onSelectTender,
   onUploadClick,
+  onOpenScraper,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -51,6 +53,19 @@ export const RecentTendersTable: React.FC<RecentTendersTableProps> = ({
               className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
           </div>
+
+          {/* Live Scraper Button */}
+          {onOpenScraper && (
+            <button
+              id="table-live-scraper-btn"
+              onClick={onOpenScraper}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-700 to-[#0F2C59] hover:from-blue-800 hover:to-slate-900 active:bg-blue-900 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-all whitespace-nowrap shrink-0 border border-blue-400/20"
+              title="Scrape and ingest live tenders"
+            >
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300 animate-pulse" />
+              <span>Live Scraper</span>
+            </button>
+          )}
 
           {/* + Upload Tender Button */}
           <button

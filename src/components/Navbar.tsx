@@ -7,7 +7,8 @@ import {
   Menu, 
   X,
   FileCheck2,
-  Sparkles
+  Sparkles,
+  Globe
 } from 'lucide-react';
 import { NavigationTab } from '../types';
 
@@ -16,6 +17,7 @@ interface NavbarProps {
   onSelectTab: (tab: NavigationTab) => void;
   onLaunchDemo: () => void;
   onOpenUpload: () => void;
+  onOpenScraper?: () => void;
   onOpenLogin?: () => void;
   unreadAlertsCount?: number;
 }
@@ -25,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectTab,
   onLaunchDemo,
   onOpenUpload,
+  onOpenScraper,
   onOpenLogin,
   unreadAlertsCount = 3,
 }) => {
@@ -113,6 +116,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action Tools */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+            {/* Live Scraper Button */}
+            {onOpenScraper && (
+              <button
+                id="btn-live-scraper"
+                onClick={onOpenScraper}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:py-2 bg-gradient-to-r from-blue-700 via-indigo-800 to-[#0F2C59] hover:from-blue-800 hover:to-slate-900 active:bg-blue-900 text-white text-xs font-semibold rounded-lg shadow-xs transition-all hover:shadow-sm whitespace-nowrap shrink-0 border border-blue-400/20"
+                title="Scrape active tenders directly from GeM and CPPP portals"
+              >
+                <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300 animate-pulse" />
+                <span>Live Scraper</span>
+              </button>
+            )}
+
             {/* 1-Click Demo Button */}
             <button
               id="btn-one-click-demo"
