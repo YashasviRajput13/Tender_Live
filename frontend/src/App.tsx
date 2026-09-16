@@ -50,7 +50,7 @@ function MorphingText({ texts }: { texts: string[] }) {
 }
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || 'direct-access-token');
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const { scrollY } = useScroll();
@@ -218,17 +218,16 @@ export default function App() {
     }
   }, [token]);
 
-  // Global 401 interceptor — auto-logout when token expires
   useEffect(() => {
     const interceptorId = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid — clear and force re-login
-          localStorage.removeItem('token');
-          setToken(null);
-          setCurrentUser(null);
-        }
+        // Disabled interceptor to ensure direct access never kicks you out
+        // if (error.response?.status === 401) {
+        //   localStorage.removeItem('token');
+        //   setToken(null);
+        //   setCurrentUser(null);
+        // }
         return Promise.reject(error);
       }
     );
@@ -559,7 +558,7 @@ export default function App() {
     }
   };
   // 9. RENDER AUTH PANEL IF LOGGED OUT
-  if (!token) {
+  if (false) {
     return (
       <div className="min-h-screen bg-white text-slate-900 overflow-x-hidden font-sans relative">
         {/* FLOATING HEADER */}
