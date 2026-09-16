@@ -337,6 +337,7 @@ export default function TenderDetails({
 
             </div>
           )}
+        </div>
 
         </div>
 

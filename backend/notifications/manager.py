@@ -261,10 +261,11 @@ class NotificationManager:
         risk_summary = ""
 
         ai_prompt = f"""
-        Analyze this tender match result and generate short, professional text blocks for a bid team notification email:
-        - Why it matches (2 sentences max)
-        - Recommended action (2 sentences max)
-        - Risk summary (2 sentences max)
+        Analyze this tender match result and generate professional text blocks for a bid team notification email:
+        - Why it matches (10 sentences max)
+        - Recommended action (10 sentences max)
+        - Risk summary (10 sentences max)
+        - ALSO INCLUDE THE FINANCIAL DETAILS, EXPERIENCE DETAILS, LOCATION DETAILS, TECHNICAL DETAILS IF AVAILABLE
 
         COMPANY: {company_data.get("name")}
         TENDER: {tender_data.get("title")}
@@ -440,7 +441,7 @@ class NotificationManager:
                         },
                         priority=str(priority or "HIGH"),
                         risk_summary=str(risk_summary or ""),
-                        recommended_action=str(recommended_action or ""),
+                        recommended_mitigation=str(recommended_action or ""),
                         evidence=evidence_list or [],
                     )
                 elif event_type == "DEADLINE_ALERT":
@@ -460,7 +461,7 @@ class NotificationManager:
                             for k, v in tender_data.items()
                         },
                         days_remaining=7,
-                        checklist=checklist,
+                        submission_checklist=checklist,
                     )
 
                 # Send email via service

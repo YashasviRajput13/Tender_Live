@@ -20,8 +20,8 @@ def create_database_engine(url: str):
 
 try:
     engine = create_database_engine(settings.DATABASE_URL)
-except OperationalError:
-    print("WARNING: PostgreSQL unreachable, falling back to SQLite local DB.")
+except Exception as err:
+    print(f"WARNING: PostgreSQL unreachable or driver missing ({err}), falling back to SQLite local DB.")
     engine = create_engine(
         settings.LOCAL_DB_FALLBACK_URL, connect_args={"check_same_thread": False}
     )
