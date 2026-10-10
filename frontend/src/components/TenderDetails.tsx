@@ -339,7 +339,6 @@ export default function TenderDetails({
           )}
         </div>
 
-        </div>
 
         {/* DRAWER FOOTER FOR DOWNLOAD REPORT ACTIONS */}
         {eligibilityReport && (

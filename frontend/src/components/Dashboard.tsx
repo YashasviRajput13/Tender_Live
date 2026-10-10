@@ -500,7 +500,7 @@ export default function Dashboard({
                   startAngle={90}
                   endAngle={-270}
                   animationDuration={1000}
-                  onMouseEnter={(_, index) => setHoveredDonutIndex(index)}
+                  onMouseEnter={(_: unknown, index: number) => setHoveredDonutIndex(index)}
                   onMouseLeave={() => setHoveredDonutIndex(null)}
                 >
                   {donutChartData.map((entry, index) => (
