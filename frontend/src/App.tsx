@@ -50,7 +50,7 @@ function MorphingText({ texts }: { texts: string[] }) {
 }
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || 'direct-access-token');
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   const { scrollY } = useScroll();
@@ -256,10 +256,15 @@ export default function App() {
 
     let shouldReconnect = true;
 
-    const connectStream = () => {
+    const connectStream = async () => {
       if (!shouldReconnect) return;
 
-      const streamUrl = `${API_BASE_URL}/api/tasks/stream/dashboard?access_token=${token}`;
+      try {
+        const ticketResponse = await axios.get(`${API_BASE_URL}/api/tasks/stream/ticket`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const streamToken = ticketResponse.data.token;
+        const streamUrl = `${API_BASE_URL}/api/tasks/stream/dashboard?access_token=${encodeURIComponent(streamToken)}`;
       const eventSource = new EventSource(streamUrl);
       eventSourceRef.current = eventSource;
 
@@ -385,6 +390,15 @@ export default function App() {
           // ignore non-JSON event payloads
         }
       });
+      } catch (error: any) {
+        if (!shouldReconnect) return;
+        setStreamStatus('reconnecting');
+        setLogs(prev => [...prev, {
+          timestamp: new Date().toLocaleTimeString(),
+          level: 'ERROR',
+          message: error.response?.data?.detail || 'Unable to authorize realtime stream. Reconnecting...'
+        }]);
+      }
     };
 
     connectStream();

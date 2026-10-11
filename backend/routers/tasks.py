@@ -1,6 +1,7 @@
 import threading
 import uuid
 import logging
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -16,6 +17,19 @@ from workers.eligibility import run_eligibility_matching
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/tasks", tags=["Task Workflows"])
+
+
+@router.get("/stream/ticket")
+def create_stream_ticket(
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    """Issue a short-lived token for browsers using the native EventSource API."""
+    return {
+        "token": auth.create_access_token(
+            {"sub": current_user.email, "scope": "sse"},
+            expires_delta=timedelta(minutes=2),
+        )
+    }
 
 
 @router.post("/start", response_model=schemas.AgentTaskOut)
@@ -131,23 +145,13 @@ def list_tasks(
 
 @router.get("/stream/dashboard")
 async def stream_dashboard_events(
-    access_token: Optional[str] = Query(None), db: Session = Depends(get_db)
+    access_token: str = Query(...), db: Session = Depends(get_db)
 ):
     """
     Establish a Server-Sent Events stream for global system events (tender_discovered, activity_log).
-    Authenticated via access_token query parameter (EventSource API cannot set Authorization headers).
-    Token is validated softly — expired tokens still receive the stream since task progress
-    events are non-sensitive. The frontend handles re-auth separately via normal API 401s.
+    Authenticated with the same Bearer token as the rest of the API.
     """
-    if access_token:
-        try:
-            auth.get_current_user_from_token(access_token, db)
-        except Exception:
-            logger.warning(
-                "SSE stream: access_token invalid or expired — serving stream anyway."
-            )
-    else:
-        logger.warning("SSE stream: no access_token provided.")
+    auth.get_current_user_from_token(access_token, db, required_scope="sse")
 
     return StreamingResponse(
         sse_manager.subscribe("dashboard_events"),
@@ -156,7 +160,6 @@ async def stream_dashboard_events(
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": "*",
         },
     )
 
@@ -177,7 +180,11 @@ def get_task_status(
 
 
 @router.get("/{task_id}/stream")
-async def stream_task_progress(task_id: str, db: Session = Depends(get_db)):
+async def stream_task_progress(
+    task_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     """
     Establish a Server-Sent Events stream tracking single task execution.
     """
@@ -192,6 +199,5 @@ async def stream_task_progress(task_id: str, db: Session = Depends(get_db)):
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": "*",
         },
     )

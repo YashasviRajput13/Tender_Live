@@ -418,6 +418,29 @@ In a separate terminal (with the backend virtual environment activated):
 cd backend
 celery -A workers.celery_app.celery_instance worker --loglevel=info -Q celery -c 4
 ```
+
+## Production deployment
+
+The frontend and backend are deployed separately:
+
+- Vercel: set the project root to `frontend`, with `npm run build` and `dist` as the output directory.
+- Render Web Service: use the `backend` directory and start with
+  `uvicorn main:app --host 0.0.0.0 --port $PORT`.
+- Render discovery worker:
+  `celery -A workers.celery_app.celery_instance worker --loglevel=info -Q discovery -c 1`
+- Render general worker:
+  `celery -A workers.celery_app.celery_instance worker --loglevel=info -Q celery -c 4`
+
+Required backend environment variables are `DATABASE_URL`, `REDIS_URL`,
+`JWT_SECRET_KEY`, `JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`,
+`GEMINI_API_KEY` (or another configured AI provider), `UPLOAD_DIR`, and
+`FRONTEND_URL`. Set `FRONTEND_URL` to the deployed Vercel origin, for example
+`https://tender-live.vercel.app`. The frontend requires `VITE_API_URL` set to
+the deployed backend origin, for example `https://tender-live-backend.onrender.com`.
+
+The `/health` endpoint can be used as the Render health check. Uploaded files
+are stored on the service filesystem, so production deployments that need files
+to survive restarts should mount persistent storage or configure object storage.
 ### 3. Frontend Setup
 ```bash
 cd frontend

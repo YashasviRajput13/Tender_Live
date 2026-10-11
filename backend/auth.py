@@ -44,31 +44,34 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> models.User:
-    user = db.query(models.User).first()
-    if not user:
-        user = models.User(
-            id=1,
-            email="user@tenderai.com",
-            full_name="Direct Access User",
-            company_id=1,
-            role="admin",
-            is_active=True
-        )
-    return user
+    return get_current_user_from_token(token, db)
 
 
-def get_current_user_from_token(token: str, db: Session) -> models.User:
-    """Validate a raw JWT token string and return the user. Used for SSE query-param auth."""
-    user = db.query(models.User).first()
-    if not user:
-        user = models.User(
-            id=1,
-            email="user@tenderai.com",
-            full_name="Direct Access User",
-            company_id=1,
-            role="admin",
-            is_active=True
+def get_current_user_from_token(
+    token: str, db: Session, required_scope: Optional[str] = None
+) -> models.User:
+    """Decode a JWT and return its active user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
+        subject = payload.get("sub")
+        if not subject:
+            raise credentials_exception
+        if required_scope and payload.get("scope") != required_scope:
+            raise credentials_exception
+    except (JWTError, TypeError):
+        raise credentials_exception
+
+    user = db.query(models.User).filter(models.User.email == subject).first()
+    if not user:
+        raise credentials_exception
     return user
 
 

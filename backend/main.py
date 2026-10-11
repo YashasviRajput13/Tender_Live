@@ -43,12 +43,17 @@ origins = [
     "http://127.0.0.1:5174",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://tender-live.vercel.app",
 ]
 
 # Allow dynamic Vercel URLs or specific production URL
 frontend_url = os.environ.get("FRONTEND_URL")
 if frontend_url:
-    origins.append(frontend_url)
+    origins.extend(
+        origin.strip()
+        for origin in frontend_url.split(",")
+        if origin.strip()
+    )
     
 # Allow wildcard for vercel preview deployments if desired, but we'll stick to env var for security.
 # To allow wildcard Vercel previews you could use regex or add them dynamically.
@@ -68,6 +73,11 @@ app.include_router(tenders_router.router)
 app.include_router(tasks_router.router)
 app.include_router(documents_router.router)
 app.include_router(reports_router.router)
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 
 @app.get("/api/notifications", response_model=List[schemas.NotificationOut])
