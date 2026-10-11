@@ -203,6 +203,14 @@ export default function App() {
       await fetchTasks();
       setApiError(null);
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common.Authorization;
+        setToken(null);
+        setCurrentUser(null);
+        setLoginError('Your session expired. Please sign in again.');
+        return;
+      }
       const message = err.response?.data?.detail || err.message || 'Failed to load user credentials.';
       console.error(message, err);
       setApiError(message);
@@ -222,12 +230,13 @@ export default function App() {
     const interceptorId = axios.interceptors.response.use(
       (response) => response,
       (error) => {
-        // Disabled interceptor to ensure direct access never kicks you out
-        // if (error.response?.status === 401) {
-        //   localStorage.removeItem('token');
-        //   setToken(null);
-        //   setCurrentUser(null);
-        // }
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common.Authorization;
+          setToken(null);
+          setCurrentUser(null);
+          setLoginError('Your session expired. Please sign in again.');
+        }
         return Promise.reject(error);
       }
     );
