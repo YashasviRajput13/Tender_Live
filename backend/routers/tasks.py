@@ -1,4 +1,3 @@
-import threading
 import uuid
 import logging
 from datetime import timedelta
@@ -11,8 +10,6 @@ import schemas
 import auth
 from database import get_db
 from sse import sse_manager
-from workers.discovery import run_tender_discovery
-from workers.eligibility import run_eligibility_matching
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +36,7 @@ def start_task(
     current_user: models.User = Depends(auth.get_current_user),
 ):
     """
-    Launch long-running Celery worker workflows (discovery scraper, eligibility analyzer).
+    Queue a durable workflow for the web-service task dispatcher.
     """
     task_id = str(uuid.uuid4())
 
@@ -51,29 +48,15 @@ def start_task(
         current_agent="scraper"
         if req.task_type == "discovery"
         else "eligibility_agent",
+        task_payload={"args": [task_id], "kwargs": {}},
     )
     db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
     logger.info(
         f"Received task start request. task_type={req.task_type}, user={current_user.email}"
     )
 
-    # 1. Trigger Discovery
     if req.task_type == "discovery":
-        try:
-            run_tender_discovery.delay(task_id)
-            logger.info(f"Triggered background Tender Discovery. Task ID: {task_id}")
-        except Exception as e:
-            logger.warning(
-                f"Redis/Celery unavailable, falling back to local discovery execution: {str(e)}"
-            )
-            threading.Thread(
-                target=run_tender_discovery.run, args=(task_id,), daemon=True
-            ).start()
-            logger.info(f"Started local discovery thread for Task ID: {task_id}")
-
-    # 2. Trigger Eligibility & Multi-agent Analysis
+        new_task.task_payload = {"args": [task_id], "kwargs": {}}
     elif req.task_type == "analysis":
         if not req.target_id:
             raise HTTPException(
@@ -103,22 +86,10 @@ def start_task(
                 status_code=400, detail="Please create a Company Profile first."
             )
 
-        # Trigger Celery match pipeline
-        try:
-            run_eligibility_matching.delay(task_id, tender.id, company.id)
-            logger.info(
-                f"Triggered background Multi-agent Analysis on Tender {tender.id}. Task ID: {task_id}"
-            )
-        except Exception as e:
-            logger.warning(
-                f"Redis/Celery unavailable, falling back to local analysis execution: {str(e)}"
-            )
-            threading.Thread(
-                target=run_eligibility_matching.run,
-                args=(task_id, tender.id, company.id),
-                daemon=True,
-            ).start()
-            logger.info(f"Started local analysis thread for Task ID: {task_id}")
+        new_task.task_payload = {
+            "args": [task_id, tender.id, company.id],
+            "kwargs": {},
+        }
 
     else:
         raise HTTPException(
@@ -126,6 +97,8 @@ def start_task(
             detail=f"Unsupported task type: {req.task_type}. Use 'discovery' or 'analysis'.",
         )
 
+    db.commit()
+    db.refresh(new_task)
     return new_task
 
 

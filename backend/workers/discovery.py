@@ -278,27 +278,20 @@ def run_tender_discovery(task_id: str):
                         status="pending",
                         progress=0,
                         current_agent="eligibility_agent",
+                        task_payload={
+                            "args": [analysis_task_id, tender_db_id, company.id],
+                            "kwargs": {},
+                        },
                     )
                     db.add(analysis_task)
                     db.commit()
                     logger.info(
                         f"Auto-queuing analysis task {analysis_task_id} for tender ID {tender_db_id}"
                     )
-                    try:
-                        run_eligibility_matching.delay(
-                            analysis_task_id, tender_db_id, company.id
-                        )
-                    except Exception as e:
-                        logger.warning(
-                            f"Celery unavailable for auto-analysis, running in thread: {e}"
-                        )
-                        import threading
-
-                        threading.Thread(
-                            target=run_eligibility_matching.run,
-                            args=(analysis_task_id, tender_db_id, company.id),
-                            daemon=True,
-                        ).start()
+                    logger.info(
+                        "Queued database-backed auto-analysis task %s",
+                        analysis_task_id,
+                    )
 
         db.close()
         return True

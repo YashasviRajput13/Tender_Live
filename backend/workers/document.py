@@ -172,22 +172,14 @@ def process_tender_document(task_id: str, tender_db_id: int, file_path: str):
             current_agent="eligibility_agent",
         )
         db.add(eligibility_task)
+        db.flush()
+        eligibility_task.task_payload = {
+            "args": [eligibility_task.id, tender.id],
+            "kwargs": {},
+        }
         db.commit()
 
-        from workers.eligibility import run_eligibility_matching
-
-        try:
-            run_eligibility_matching.delay(eligibility_task.id, tender.id)
-            logger.info(f"Triggered eligibility task {eligibility_task.id} via Celery.")
-        except Exception as celery_err:
-            logger.warning(
-                f"Redis unavailable for eligibility dispatch, falling back to thread: {str(celery_err)}"
-            )
-            threading.Thread(
-                target=run_eligibility_matching.run,
-                args=(eligibility_task.id, tender.id),
-                daemon=True,
-            ).start()
+        logger.info("Queued database-backed eligibility task %s", eligibility_task.id)
 
         db.close()
         return True

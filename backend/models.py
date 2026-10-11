@@ -157,6 +157,7 @@ class AgentTask(Base):
     status = Column(String, default="pending")  # pending, running, completed, failed
     progress = Column(Integer, default=0)  # 0 to 100
     log_messages = Column(JSON, default=list)  # list of log string dicts
+    task_payload = Column(JSON, default=dict)
     current_agent = Column(
         String, nullable=True
     )  # scraper, document_intel, eligibility_agent, summary_agent, completed

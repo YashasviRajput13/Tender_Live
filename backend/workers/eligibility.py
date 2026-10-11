@@ -410,10 +410,10 @@ def run_eligibility_matching(
                 f"Queueing notification: {event_type} for Tender ID: {tender.id}"
             )
             try:
-                result = send_notification_task.delay(
+                send_notification_task.run(
                     event_type, company_data, tender_data, eligibility_res, score_res
                 )
-                logger.info(f"Task queued successfully. Task ID: {result.id}")
+                logger.info("Notification task completed for event %s", event_type)
             except Exception as e:
                 logger.error(
                     f"FAILED to queue notification task for {event_type}: {str(e)}"

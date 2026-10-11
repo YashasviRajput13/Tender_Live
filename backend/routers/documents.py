@@ -10,7 +10,6 @@ import schemas
 import auth
 from database import get_db
 from config import settings
-from workers.document import process_tender_document
 from sse import sse_manager
 import asyncio
 
@@ -109,7 +108,7 @@ def upload_tender_document(
 
     threading.Thread(target=fire_sse, daemon=True).start()
 
-    # 3. Create Celery task
+    # 3. Create a durable database task
     task_id = str(uuid.uuid4())
     new_task = models.AgentTask(
         id=task_id,
@@ -117,26 +116,17 @@ def upload_tender_document(
         status="pending",
         progress=0,
         current_agent="document_intel",
+        task_payload={
+            "args": [task_id, shell_tender.id, saved_file_path],
+            "kwargs": {},
+        },
     )
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
 
-    # 4. Trigger Celery worker pipeline (with local thread fallback if Redis/Celery is unavailable)
-    try:
-        process_tender_document.delay(task_id, shell_tender.id, saved_file_path)
-        logger.info(
-            f"Triggered background Document analysis task {task_id} for Tender {shell_tender.id}"
-        )
-    except Exception as celery_err:
-        logger.warning(
-            f"Redis/Celery unavailable for document task, falling back to local thread execution: {str(celery_err)}"
-        )
-        threading.Thread(
-            target=process_tender_document.run,
-            args=(task_id, shell_tender.id, saved_file_path),
-            daemon=True,
-        ).start()
-        logger.info(f"Started local document analysis thread for Task ID: {task_id}")
+    logger.info(
+        f"Queued database-backed document analysis task {task_id} for Tender {shell_tender.id}"
+    )
 
     return new_task

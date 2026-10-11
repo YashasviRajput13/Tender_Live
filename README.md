@@ -412,12 +412,23 @@ pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 *(Make sure you have a local PostgreSQL and Redis instance running).*
-### 2. Celery Workers
+### 2. Optional Celery Workers
 In a separate terminal (with the backend virtual environment activated):
 ```bash
 cd backend
 celery -A workers.celery_app.celery_instance worker --loglevel=info -Q celery -c 4
 ```
+
+Celery workers are optional. By default, the FastAPI web service starts a
+single-concurrency, PostgreSQL-backed task dispatcher. Discovery, document
+analysis, eligibility analysis, and report generation are persisted as
+`agent_tasks` rows and executed sequentially by the web service, so a separate
+paid Render worker is not required. Pending work is recovered after a web
+service restart. This is suitable for low-volume free-tier usage, but long AI
+jobs can still be interrupted by a platform shutdown and should be retried
+from the dashboard. Keep the Render web service at one instance unless the
+dispatcher is replaced with a shared worker system; task claiming is designed
+for the single-instance free-tier deployment.
 
 ## Production deployment
 

@@ -9,6 +9,7 @@ import models
 from database import engine, Base, get_db
 import auth
 import schemas
+import task_dispatcher
 
 # Import Routers
 from routers import auth as auth_router
@@ -378,6 +379,12 @@ def startup_db_init():
     # Run custom migrations to preserve notifications table data if old schema is found
     try:
         inspector = inspect(engine)
+        if "agent_tasks" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("agent_tasks")]
+            if "task_payload" not in columns:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE agent_tasks ADD COLUMN task_payload JSON"))
+                logger.info("Added task_payload column to agent_tasks.")
         if "notifications" in inspector.get_table_names():
             columns = [col["name"] for col in inspector.get_columns("notifications")]
             if "company_id" not in columns:
@@ -446,6 +453,7 @@ def startup_db_init():
         db.rollback()
     finally:
         db.close()
+        task_dispatcher.start()
 
 
 def SessionLocal_init():
